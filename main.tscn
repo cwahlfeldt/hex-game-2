@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://dpsnxtmh5yx32"]
+
+[ext_resource type="Script" path="res://map.gd" id="1_wuwod"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_8una2"]
+
+[node name="Main" type="Node3D"]
+
+[node name="Map" type="Node3D" parent="."]
+script = ExtResource("1_wuwod")
+
+[node name="Background" type="MeshInstance3D" parent="."]
+transform = Transform3D(17.7, 0, 0, 0, 17.7, 0, 0, 0, 17.7, 0, -1, 0)
+mesh = SubResource("PlaneMesh_8una2")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.52509, -1.20714)
+projection = 1
+size = 24.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.87165, -0.449019, -0.196489, 0, -0.400893, 0.916125, -0.490128, -0.798541, -0.349439, 0, 7.40271, 0)
