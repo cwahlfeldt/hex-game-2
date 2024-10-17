@@ -12,10 +12,11 @@ const ORIENTATION = {
 	"startAngle": 0.0
 }
 
-const SIZE = 40
-const ORIGIN = Vector2(0, 0)
+var SIZE = 40
+var ORIGIN = Vector2(0, 0)
 var LAYOUT = layout(SIZE, ORIGIN)
 var HEX_SIZE = 0.55
+@export var MAP_SIZE = 5
 
 var DIRECTIONS = {
 	"northWest": hex(-1, 0, 1),
@@ -25,6 +26,74 @@ var DIRECTIONS = {
 	"south": hex(0, 1, -1),
 	"southEast": hex(1, 0, -1),
 }
+
+var HEX_SCENE = preload("res://hex.tscn")
+var PLAYER_SCENE = preload("res://player.tscn")
+var ENEMY_SCENE = preload("res://enemy.tscn")
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	var grid = draw_grid()
+	draw_players(grid)
+	var astar = AStar3D.new()
+	var i = 0
+	
+	for hex in grid:
+		astar.add_point(hex.index, hex.vectors, 1)
+	for hex in grid:
+		for neighbor in hex.neighbors:
+			astar.connect_points(hex.index, neighbor)
+	print(astar.get_point_count())
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+
+func create_grid_structure():
+	var cubic_grid = hex_shaped_grid(MAP_SIZE)
+	var meters_grid = create_grid_3d_coords(cubic_grid)
+	var merged_grid = []
+	var i = 0
+	for cubic_coord in cubic_grid:
+		var tile_data = {
+			"cubic": cubic_coord,
+			"vectors": meters_grid[i],
+			"neighbors": find_hex_matches(cubic_grid, get_all_neighbors(cubic_coord)),
+			"index": i
+		}
+		merged_grid.append(tile_data)
+		i = i + 1
+	return merged_grid
+
+func draw_grid():
+	var grid = create_grid_structure()
+	print(grid)
+	for hex in grid:
+		var hex_mesh = HEX_SCENE.instantiate()
+		add_child(hex_mesh)
+		hex_mesh.global_transform.origin = hex.vectors
+	return grid
+
+func draw_players(grid_coords):
+	var player_mesh = PLAYER_SCENE.instantiate()
+	var enemy_mesh = ENEMY_SCENE.instantiate()
+	add_child(player_mesh)
+	add_child(enemy_mesh)
+	player_mesh.global_transform.origin = grid_coords[11].vectors
+	enemy_mesh.global_transform.origin = grid_coords[12].vectors
+
+func find_hex_matches(large_array: Array, small_array: Array) -> Array:
+	var matches = []
+	for small_hex in small_array:
+		for i in range(large_array.size()):
+			var large_hex = large_array[i]
+			# Compare all three coordinates
+			if large_hex.q == small_hex.q and \
+			   large_hex.r == small_hex.r and \
+			   large_hex.s == small_hex.s:
+				matches.append(i)
+				break  # Found match for this hex, move to next
+	return matches
 
 func hex(q, r, s):
 	if q + r + s != 0:
@@ -147,10 +216,8 @@ func hex_shaped_hash_grid(radius):
 func shuffle_grid(grid):
 	var size = grid.size() / 4
 	var new_grid = grid.duplicate()
-
 	for i in range(size):
 		new_grid.remove(randi_range(0, grid.size() - 1))
-	
 	return new_grid
 
 func hex_to_3d(q, r, s):
@@ -168,62 +235,3 @@ func create_grid_3d_coords(cubic_coords):
 		var position_3d = hex_to_3d(q, r, s)
 		grid.append(position_3d)
 	return grid
-
-var HEX_SCENE = preload("res://hex.tscn")
-var PLAYER_SCENE = preload("res://player.tscn")
-var ENEMY_SCENE = preload("res://enemy.tscn")
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	var grid = draw_grid()
-	#print(grid)
-	draw_players(grid)
-	create_grid_structure()
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-
-func create_grid_structure():
-	var cubic_grid = hex_shaped_grid(1)
-	var meters_grid = create_grid_3d_coords(cubic_grid)
-	var merged_grid = []
-	var i = 0
-	for cubic_coord in cubic_grid:
-		var tile_data = {
-			"cubic": cubic_coord,
-			"vectors": meters_grid[i],
-			"neighbors": find_hex_matches(cubic_grid, get_all_neighbors(cubic_coord))
-		}
-		merged_grid.append(tile_data)
-		i = i + 1
-	print(merged_grid)
-	
-func find_hex_matches(large_array: Array, small_array: Array) -> Array:
-	var matches = []
-	for small_hex in small_array:
-		for i in range(large_array.size()):
-			var large_hex = large_array[i]
-			# Compare all three coordinates
-			if large_hex.q == small_hex.q and \
-			   large_hex.r == small_hex.r and \
-			   large_hex.s == small_hex.s:
-				matches.append(i)
-				break  # Found match for this hex, move to next
-	return matches
-
-func draw_grid():
-	var grid = hex_shaped_grid(5)
-	var coords = create_grid_3d_coords(grid)
-	for hex_coord in coords:
-		var hex_mesh = HEX_SCENE.instantiate()
-		add_child(hex_mesh)
-		hex_mesh.global_transform.origin = hex_coord
-	return coords
-
-func draw_players(grid_coords):
-	var player_mesh = PLAYER_SCENE.instantiate()
-	var enemy_mesh = ENEMY_SCENE.instantiate()
-	add_child(player_mesh)
-	add_child(enemy_mesh)
-	player_mesh.global_transform.origin = grid_coords[0]
