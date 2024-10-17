@@ -16,6 +16,7 @@ var SIZE = 40
 var ORIGIN = Vector2(0, 0)
 var LAYOUT = layout(SIZE, ORIGIN)
 var HEX_SIZE = 0.55
+
 @export var MAP_SIZE = 5
 
 var DIRECTIONS = {
@@ -37,13 +38,12 @@ func _ready() -> void:
 	draw_players(grid)
 	var astar = AStar3D.new()
 	var i = 0
-	
 	for hex in grid:
 		astar.add_point(hex.index, hex.vectors, 1)
 	for hex in grid:
 		for neighbor in hex.neighbors:
 			astar.connect_points(hex.index, neighbor)
-	print(astar.get_point_count())
+	print(astar.are_points_connected(1, 18, true))
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
@@ -72,6 +72,12 @@ func draw_grid():
 		var hex_mesh = HEX_SCENE.instantiate()
 		add_child(hex_mesh)
 		hex_mesh.global_transform.origin = hex.vectors
+		var label3d = Label3D.new()
+		label3d.position = Vector3(hex.vectors.x, 0.3, hex.vectors.z)
+		label3d.text = str(hex.index)
+		label3d.font_size = 48
+		label3d.modulate = Color(0,0,0,1)
+		add_child(label3d)
 	return grid
 
 func draw_players(grid_coords):
