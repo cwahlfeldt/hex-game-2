@@ -152,13 +152,13 @@ func shuffle_grid(grid):
 		new_grid.remove(randi_range(0, grid.size() - 1))
 	
 	return new_grid
-	
+
 func hex_to_3d(q, r, s):
 	var x = HEX_SIZE * (3.0 / 2.0 * q)
 	var z = HEX_SIZE * (sqrt(3.0) * (r + q / 2.0))
 	var y = 0  # Can add elevation here if needed
 	return Vector3(x, y, z)
-	
+
 func create_grid_3d_coords(cubic_coords):
 	var grid = []
 	for hex_coord in cubic_coords:
@@ -168,21 +168,33 @@ func create_grid_3d_coords(cubic_coords):
 		var position_3d = hex_to_3d(q, r, s)
 		grid.append(position_3d)
 	return grid
-	
+
 var HEX_SCENE = preload("res://hex.tscn")
+var PLAYER_SCENE = preload("res://player.tscn")
+var ENEMY_SCENE = preload("res://enemy.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	var grid = hex_shaped_grid(5)
-	var coords = create_grid_3d_coords(grid)
-	#var hex_mesh = HEX_SCENE.instantiate()
-	#add_child(hex_mesh)
-	for hex_coord in coords:
-		var hex_mesh = HEX_SCENE.instantiate()
-		add_child(hex_mesh)
-		hex_mesh.global_transform.origin = hex_coord
-		print(hex_mesh)
+	var grid = draw_grid()
+	print(grid)
+	draw_players(grid)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
+
+func draw_grid():
+	var grid = hex_shaped_grid(5)
+	var coords = create_grid_3d_coords(grid)
+	for hex_coord in coords:
+		var hex_mesh = HEX_SCENE.instantiate()
+		add_child(hex_mesh)
+		hex_mesh.global_transform.origin = hex_coord
+	return coords
+
+func draw_players(grid_coords):
+	var player_mesh = PLAYER_SCENE.instantiate()
+	var enemy_mesh = ENEMY_SCENE.instantiate()
+	add_child(player_mesh)
+	add_child(enemy_mesh)
+	player_mesh.global_transform.origin = grid_coords[0]

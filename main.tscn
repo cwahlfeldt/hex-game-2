@@ -1,6 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://dpsnxtmh5yx32"]
+[gd_scene load_steps=4 format=3 uid="uid://dpsnxtmh5yx32"]
 
 [ext_resource type="Script" path="res://map.gd" id="1_wuwod"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eq3qc"]
+albedo_color = Color(0.62, 0.62, 0.62, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_8una2"]
 
@@ -10,13 +13,14 @@
 script = ExtResource("1_wuwod")
 
 [node name="Background" type="MeshInstance3D" parent="."]
-transform = Transform3D(17.7, 0, 0, 0, 17.7, 0, 0, 0, 17.7, 0, -1, 0)
+transform = Transform3D(30, 0, 0, 0, 30, 0, 0, 0, 30, 0, -1, 0)
+material_override = SubResource("StandardMaterial3D_eq3qc")
 mesh = SubResource("PlaneMesh_8una2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 7.52509, -1.20714)
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 10, 5.6)
 projection = 1
-size = 24.0
+size = 11.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.87165, -0.449019, -0.196489, 0, -0.400893, 0.916125, -0.490128, -0.798541, -0.349439, 0, 7.40271, 0)
+transform = Transform3D(0.5, 0.75, -0.433013, 0, 0.5, 0.866025, 0.866025, -0.433013, 0.25, 0, 0, 0)
