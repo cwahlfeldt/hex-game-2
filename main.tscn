@@ -18,7 +18,7 @@ material_override = SubResource("StandardMaterial3D_eq3qc")
 mesh = SubResource("PlaneMesh_8una2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 10, 5.6)
+transform = Transform3D(0.98153, -0.165676, 0.0956529, 0, 0.5, 0.866025, -0.191306, -0.85003, 0.490765, 0.873474, 10, 5.6)
 projection = 1
 size = 11.0
 
