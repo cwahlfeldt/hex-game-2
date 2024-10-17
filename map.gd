@@ -15,7 +15,7 @@ const ORIENTATION = {
 const SIZE = 40
 const ORIGIN = Vector2(0, 0)
 var LAYOUT = layout(SIZE, ORIGIN)
-var HEX_SIZE = 0.6
+var HEX_SIZE = 0.55
 
 var DIRECTIONS = {
 	"northWest": hex(-1, 0, 1),
@@ -176,12 +176,41 @@ var ENEMY_SCENE = preload("res://enemy.tscn")
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	var grid = draw_grid()
-	print(grid)
+	#print(grid)
 	draw_players(grid)
+	create_grid_structure()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
 	pass
+
+func create_grid_structure():
+	var cubic_grid = hex_shaped_grid(1)
+	var meters_grid = create_grid_3d_coords(cubic_grid)
+	var merged_grid = []
+	var i = 0
+	for cubic_coord in cubic_grid:
+		var tile_data = {
+			"cubic": cubic_coord,
+			"vectors": meters_grid[i],
+			"neighbors": find_hex_matches(cubic_grid, get_all_neighbors(cubic_coord))
+		}
+		merged_grid.append(tile_data)
+		i = i + 1
+	print(merged_grid)
+	
+func find_hex_matches(large_array: Array, small_array: Array) -> Array:
+	var matches = []
+	for small_hex in small_array:
+		for i in range(large_array.size()):
+			var large_hex = large_array[i]
+			# Compare all three coordinates
+			if large_hex.q == small_hex.q and \
+			   large_hex.r == small_hex.r and \
+			   large_hex.s == small_hex.s:
+				matches.append(i)
+				break  # Found match for this hex, move to next
+	return matches
 
 func draw_grid():
 	var grid = hex_shaped_grid(5)
