@@ -1,5 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://dpsnxtmh5yx32"]
+[gd_scene load_steps=5 format=3 uid="uid://dpsnxtmh5yx32"]
 
+[ext_resource type="Script" path="res://logic.gd" id="1_i56dy"]
 [ext_resource type="PackedScene" uid="uid://bvqvnfbuv8l5p" path="res://map.tscn" id="1_vkypb"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eq3qc"]
@@ -8,6 +9,9 @@ albedo_color = Color(0.62, 0.62, 0.62, 1)
 [sub_resource type="PlaneMesh" id="PlaneMesh_8una2"]
 
 [node name="Main" type="Node3D"]
+
+[node name="Logic" type="Node3D" parent="."]
+script = ExtResource("1_i56dy")
 
 [node name="Map" parent="." instance=ExtResource("1_vkypb")]
 MAP_SIZE = 2
