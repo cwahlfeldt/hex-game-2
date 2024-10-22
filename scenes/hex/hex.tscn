@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://cawm772khd5fp"]
 
-[ext_resource type="Script" path="res://hex.gd" id="1_f7l8w"]
+[ext_resource type="Script" path="res://scenes/hex/hex.gd" id="1_f7l8w"]
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_i5m3r"]
 
@@ -21,3 +21,5 @@ shape = SubResource("CylinderShape3D_i5m3r")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.00598, 0, 0, 0, 0.100598, 0, 0, 0, 1.00598, 0, 0, 0)
 mesh = SubResource("CylinderMesh_omk1f")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]

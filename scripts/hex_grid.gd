@@ -18,6 +18,7 @@ var LAYOUT = layout(SIZE, ORIGIN)
 var HEX_SIZE = 0.55
 
 @export var MAP_SIZE = 5
+@export var current_player_coords = Vector3(0,0,0)
 
 var DIRECTIONS = {
 	"northWest": hex(-1, 0, 1),
@@ -28,26 +29,17 @@ var DIRECTIONS = {
 	"southEast": hex(1, 0, -1),
 }
 
-var HEX_SCENE = preload("res://hex.tscn")
-var PLAYER_SCENE = preload("res://player.tscn")
-var ENEMY_SCENE = preload("res://enemy.tscn")
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
+var HEX_SCENE = preload("res://scenes/hex/hex.tscn")
+	
+func initialize():
 	var grid = draw_grid()
-	draw_players(grid)
-	var astar = AStar3D.new()
-	var i = 0
+	var astar: AStar3D = AStar3D.new()
 	for hex in grid:
 		astar.add_point(hex.index, hex.vectors, 1)
-	for hex in grid:
 		for neighbor in hex.neighbors:
 			astar.connect_points(hex.index, neighbor)
-	print(astar.are_points_connected(1, 18, true))
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
+			
+	return {"grid": grid, "astar": astar}
 
 func create_grid_structure():
 	var cubic_grid = hex_shaped_grid(MAP_SIZE)
@@ -70,6 +62,7 @@ func draw_grid():
 	print(grid)
 	for hex in grid:
 		var hex_mesh = HEX_SCENE.instantiate()
+		hex_mesh.hex_obj = hex
 		add_child(hex_mesh)
 		hex_mesh.global_transform.origin = hex.vectors
 		var label3d = Label3D.new()
@@ -79,14 +72,6 @@ func draw_grid():
 		label3d.modulate = Color(0,0,0,1)
 		add_child(label3d)
 	return grid
-
-func draw_players(grid_coords):
-	var player_mesh = PLAYER_SCENE.instantiate()
-	var enemy_mesh = ENEMY_SCENE.instantiate()
-	add_child(player_mesh)
-	add_child(enemy_mesh)
-	player_mesh.global_transform.origin = grid_coords[11].vectors
-	enemy_mesh.global_transform.origin = grid_coords[12].vectors
 
 func find_hex_matches(large_array: Array, small_array: Array) -> Array:
 	var matches = []

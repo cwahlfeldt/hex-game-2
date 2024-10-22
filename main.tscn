@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://dpsnxtmh5yx32"]
 
-[ext_resource type="Script" path="res://logic.gd" id="1_i56dy"]
-[ext_resource type="PackedScene" uid="uid://bvqvnfbuv8l5p" path="res://map.tscn" id="1_vkypb"]
+[ext_resource type="Script" path="res://game.gd" id="1_i56dy"]
+[ext_resource type="Script" path="res://camera_3d.gd" id="3_nqcw2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eq3qc"]
 albedo_color = Color(0.62, 0.62, 0.62, 1)
@@ -10,11 +10,8 @@ albedo_color = Color(0.62, 0.62, 0.62, 1)
 
 [node name="Main" type="Node3D"]
 
-[node name="Logic" type="Node3D" parent="."]
+[node name="Game" type="Node3D" parent="."]
 script = ExtResource("1_i56dy")
-
-[node name="Map" parent="." instance=ExtResource("1_vkypb")]
-MAP_SIZE = 2
 
 [node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(30, 0, 0, 0, 30, 0, 0, 0, 30, 0, -1, 0)
@@ -25,6 +22,7 @@ mesh = SubResource("PlaneMesh_8una2")
 transform = Transform3D(0.986427, -0.0498225, 0.156459, -0.0827928, 0.671948, 0.735956, -0.1418, -0.738921, 0.658703, 0.831795, 6.5444, 5.6)
 projection = 1
 size = 11.0
+script = ExtResource("3_nqcw2")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.5, 0.75, -0.433013, 0, 0.5, 0.866025, 0.866025, -0.433013, 0.25, 0, 0, 0)
