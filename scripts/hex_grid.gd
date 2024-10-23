@@ -1,5 +1,7 @@
 extends Node3D
 
+const HEX_SCENE = preload("res://scenes/hex/hex.tscn")
+
 const ORIENTATION = {
 	"f0": 3.0 / 2.0,
 	"f1": 0.0,
@@ -19,7 +21,7 @@ var HEX_SIZE = 0.55
 
 @export var MAP_SIZE = 5
 @export var current_player_coords = Vector3(0,0,0)
-@export var show_labels = false
+@export var show_labels = true
 
 var DIRECTIONS = {
 	"northWest": hex(-1, 0, 1),
@@ -30,23 +32,26 @@ var DIRECTIONS = {
 	"southEast": hex(1, 0, -1),
 }
 
-var HEX_SCENE = preload("res://scenes/hex/hex.tscn")
-	
+
 func initialize():
 	var grid = draw_grid()
 	var astar: AStar3D = AStar3D.new()
+	
 	for hex in grid:
 		astar.add_point(hex.index, hex.vectors, 1)
 		for neighbor in hex.neighbors:
-			astar.connect_points(hex.index, neighbor)
-			
+			if astar.has_point(neighbor):
+				astar.connect_points(hex.index, neighbor)
+	
 	return {"grid": grid, "astar": astar}
+
 
 func create_grid_structure():
 	var cubic_grid = hex_shaped_grid(MAP_SIZE)
 	var meters_grid = create_grid_3d_coords(cubic_grid)
 	var merged_grid = []
 	var i = 0
+	
 	for cubic_coord in cubic_grid:
 		var tile_data = {
 			"cubic": cubic_coord,
@@ -54,14 +59,16 @@ func create_grid_structure():
 			"neighbors": find_hex_matches(cubic_grid, get_all_neighbors(cubic_coord)),
 			"index": i
 		}
+	
 		merged_grid.append(tile_data)
 		i = i + 1
+	
 	return merged_grid
 
 
 func draw_grid():
 	var grid = remove_random_elements(create_grid_structure(), 8)
-	print(grid)
+	
 	for hex in grid:
 		var hex_mesh = HEX_SCENE.instantiate()
 		hex_mesh.hex = hex
@@ -74,6 +81,7 @@ func draw_grid():
 			label3d.font_size = 48
 			label3d.modulate = Color(0,0,0,1)
 			add_child(label3d)
+	
 	return grid
 
 

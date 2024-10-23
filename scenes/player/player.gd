@@ -1,12 +1,8 @@
-extends Node3D
-
-var current_hex = {}
-var health = 2
+class_name Player
+extends Character
 
 func _ready() -> void:
-	SignalBus.selected_hex.connect(_on_select_hex)
-
-
-func _on_select_hex(hex):
-	current_hex = hex
-	print(current_hex)
+	super()
+	id = "player_0"
+	type = CHARACTER_TYPE.PLAYER
+	

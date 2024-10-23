@@ -1,4 +1,8 @@
-extends Node3D
+class_name Enemy
+extends Character
 
-var current_hex = {}
-var health = 1
+func _ready() -> void:
+	super()
+	id = "grunt_0"
+	type = CHARACTER_TYPE.GRUNT
+	max_health = 1

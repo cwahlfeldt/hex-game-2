@@ -1,57 +1,72 @@
 extends Node3D
 
-var player_scene = preload("res://scenes/player/player.tscn")
-var enemy_scene = preload("res://scenes/enemy/enemy.tscn")
-var player
-var enemy1
-var enemy2
-var enemy3
+const player_scene = preload("res://scenes/player/player.tscn")
+const enemy_scene = preload("res://scenes/enemy/enemy.tscn")
+
 var hex_grid
 var path_finding: AStar3D
-var player_path_id = 50
-var enemy_path_id = 14
-var new_position = 50
-var path = []
-var players_turn = true
+var player_start_hex_id = 50
+var rng = RandomNumberGenerator.new()
+var turn_queue: TurnQueue = TurnQueue.new()
+var current_character: Character  # Keep track of current character
 
-
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	SignalBus.selected_hex.connect(_on_selected_hex)
 	var hex_grid_init = HexGrid.initialize()
 	hex_grid = hex_grid_init.grid
 	path_finding = hex_grid_init.astar
 	
-	player = init_player(path_finding.get_point_position(player_path_id))
-	enemy1 = init_enemy(path_finding.get_point_position(enemy_path_id))
+	var player = init_player(50)
+	turn_queue.add_entity(player)
+	
+	range(3).map(func(n):
+		var enemy = init_enemy(rng.randi_range(0, 40))
+		turn_queue.add_entity(enemy)
+	)
+	
+	turn_queue.turn_changed.connect(_on_turn_changed)
+	current_character = turn_queue.get_current()  # Initialize current character
 
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta: float) -> void:
-	if (path_finding.get_point_path(player_path_id, new_position).size() > 1):
-		var points = path_finding.get_point_path(player_path_id, new_position)
-		Animate.through_with_callback(player, points, _on_player_move_end)
-		player_path_id = new_position
+	if current_character and current_character.path.size() > 1:
+		# Use global_transform.origin for proper position access
+		current_character.global_transform.origin = current_character.path[1]
+		#Animate.through_with_callback(
+			#current_character, 
+			#current_character.path, 
+			#_on_player_move_end,
+		#)
 
+func _on_turn_changed(entity):
+	print("It's now " + entity.name + "'s turn!")
+	current_character = entity  # Update current character reference
 
 func _on_player_move_end():
-	players_turn = false
-
+	if current_character and current_character.path.size() > 1:
+		current_character.current_hex_id = path_finding.get_closest_point(current_character.path[1])
+		#current_character.path = []
+		turn_queue.next_turn()
+		current_character = turn_queue.get_current()  # Update reference after turn change
 
 func _on_selected_hex(hex):
-	new_position = hex.index
-	print(path_finding.get_point_path(player_path_id, new_position))
+	if current_character:
+		var path = path_finding.get_point_path(current_character.current_hex_id, hex.index)
+		if path.size() >= 2:
+			current_character.path = path.slice(0, 2)
+			print("Path set for ", current_character.name, ": ", current_character.path)
 
-
-func init_player(location: Vector3):
-	var player = player_scene.instantiate()
+func init_player(id: int) -> Character:
+	var player: Character = player_scene.instantiate()
+	var location = path_finding.get_point_position(id)
+	player.current_hex_id = id
 	add_child(player)
 	player.global_transform.origin = location
 	return player
 
-
-func init_enemy(location: Vector3):
-	var enemy = enemy_scene.instantiate()
+func init_enemy(id: int) -> Character:
+	var enemy: Character = enemy_scene.instantiate()
+	var location = path_finding.get_point_position(id)
+	enemy.current_hex_id = id
 	add_child(enemy)
 	enemy.global_transform.origin = location
 	return enemy

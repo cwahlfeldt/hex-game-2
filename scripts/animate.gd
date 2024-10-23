@@ -57,6 +57,7 @@ static func through(
 		return null
 		
 	_kill_tween(node)
+
 	var tween = _create_tween(node, config)
 	
 	var points_to_use = positions.duplicate()
