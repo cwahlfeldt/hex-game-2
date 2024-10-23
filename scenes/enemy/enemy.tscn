@@ -1,4 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://5lyadpkov730"]
+[gd_scene load_steps=4 format=3 uid="uid://5lyadpkov730"]
+
+[ext_resource type="Script" path="res://scenes/enemy/enemy.gd" id="1_4edcb"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tjtsu"]
 albedo_color = Color(1, 0.27451, 0.192157, 1)
@@ -8,7 +10,8 @@ material = SubResource("StandardMaterial3D_tjtsu")
 radial_segments = 61
 rings = 10
 
-[node name="Player" type="Node3D"]
+[node name="Enemy" type="Node3D"]
+script = ExtResource("1_4edcb")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.5, 0, 0, 0, 0.397, 0, 0, 0, 0.5, 0, 0.5, 0)

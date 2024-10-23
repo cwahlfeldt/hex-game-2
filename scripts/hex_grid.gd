@@ -19,6 +19,7 @@ var HEX_SIZE = 0.55
 
 @export var MAP_SIZE = 5
 @export var current_player_coords = Vector3(0,0,0)
+@export var show_labels = false
 
 var DIRECTIONS = {
 	"northWest": hex(-1, 0, 1),
@@ -57,21 +58,40 @@ func create_grid_structure():
 		i = i + 1
 	return merged_grid
 
+
 func draw_grid():
-	var grid = create_grid_structure()
+	var grid = remove_random_elements(create_grid_structure(), 8)
 	print(grid)
 	for hex in grid:
 		var hex_mesh = HEX_SCENE.instantiate()
-		hex_mesh.hex_obj = hex
+		hex_mesh.hex = hex
 		add_child(hex_mesh)
 		hex_mesh.global_transform.origin = hex.vectors
-		var label3d = Label3D.new()
-		label3d.position = Vector3(hex.vectors.x, 0.3, hex.vectors.z)
-		label3d.text = str(hex.index)
-		label3d.font_size = 48
-		label3d.modulate = Color(0,0,0,1)
-		add_child(label3d)
+		if show_labels:
+			var label3d = Label3D.new()
+			label3d.position = Vector3(hex.vectors.x, 0.3, hex.vectors.z)
+			label3d.text = str(hex.index)
+			label3d.font_size = 48
+			label3d.modulate = Color(0,0,0,1)
+			add_child(label3d)
 	return grid
+
+
+# Method 1: Remove specific number of random elements
+func remove_random_elements(array: Array, count: int) -> Array:
+	# Create a copy so we don't modify the original
+	var working_array = array.duplicate()
+	
+	# Ensure we don't try to remove more elements than exist
+	count = mini(count, working_array.size())
+	
+	for i in range(count):
+		# Pick a random index and remove it
+		var random_index = randi() % working_array.size()
+		working_array.remove_at(random_index)
+	
+	return working_array
+
 
 func find_hex_matches(large_array: Array, small_array: Array) -> Array:
 	var matches = []

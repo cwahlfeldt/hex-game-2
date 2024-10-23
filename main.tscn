@@ -19,9 +19,9 @@ material_override = SubResource("StandardMaterial3D_eq3qc")
 mesh = SubResource("PlaneMesh_8una2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.986427, -0.0498225, 0.156459, -0.0827928, 0.671948, 0.735956, -0.1418, -0.738921, 0.658703, 0.831795, 6.5444, 5.6)
+transform = Transform3D(0.986427, -0.0498228, 0.15646, -0.0827928, 0.671948, 0.735956, -0.1418, -0.738921, 0.658702, 1.20737, 6.5444, 5.84063)
 projection = 1
-size = 11.0
+size = 9.0
 script = ExtResource("3_nqcw2")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
