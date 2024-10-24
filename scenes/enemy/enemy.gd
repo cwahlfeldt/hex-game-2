@@ -6,3 +6,4 @@ func _ready() -> void:
 	id = "grunt_0"
 	type = CHARACTER_TYPE.GRUNT
 	max_health = 1
+	move_range = 3

@@ -32,7 +32,6 @@ var DIRECTIONS = {
 	"southEast": hex(1, 0, -1),
 }
 
-
 func initialize():
 	var grid = draw_grid()
 	var astar: AStar3D = AStar3D.new()
@@ -45,14 +44,20 @@ func initialize():
 	
 	return {"grid": grid, "astar": astar}
 
-
 func create_grid_structure():
 	var cubic_grid = hex_shaped_grid(MAP_SIZE)
+	cubic_grid.sort_custom(func(a, b):
+		if a.r != b.r:
+			return a.r > b.r  # Sort by r coordinate (reverse)
+		return a.q > b.q      # Then by q coordinate (reverse)
+	)
 	var meters_grid = create_grid_3d_coords(cubic_grid)
 	var merged_grid = []
 	var i = 0
 	
 	for cubic_coord in cubic_grid:
+		var neighbors = get_all_neighbors(cubic_coord)
+		print(find_hex_matches(cubic_grid, get_all_neighbors(cubic_coord)))
 		var tile_data = {
 			"cubic": cubic_coord,
 			"vectors": meters_grid[i],
@@ -64,7 +69,6 @@ func create_grid_structure():
 		i = i + 1
 	
 	return merged_grid
-
 
 func draw_grid():
 	var grid = remove_random_elements(create_grid_structure(), 8)
@@ -85,21 +89,57 @@ func draw_grid():
 	return grid
 
 
-# Method 1: Remove specific number of random elements
 func remove_random_elements(array: Array, count: int) -> Array:
 	# Create a copy so we don't modify the original
 	var working_array = array.duplicate()
 	
 	# Ensure we don't try to remove more elements than exist
-	count = mini(count, working_array.size())
+	count = mini(count, working_array.size() - 2)  # Leave at least 2 hexes (0 index and one other)
 	
-	for i in range(count):
-		# Pick a random index and remove it
-		var random_index = randi() % working_array.size()
+	var removed = 0
+	while removed < count:
+		# Pick a random index, avoiding index 0
+		var random_index = (randi() % (working_array.size() - 1)) + 1
+		var hex_to_remove = working_array[random_index]
+		
+		# Skip if we're trying to remove index 0
+		if hex_to_remove.index == 0:
+			continue
+			
+		# Temporarily remove the hex
 		working_array.remove_at(random_index)
+		
+		# Check if removing this hex would break connectivity
+		if is_grid_connected(working_array):
+			removed += 1
+		else:
+			# If it breaks connectivity, put it back
+			working_array.insert(random_index, hex_to_remove)
 	
 	return working_array
 
+# Helper function to check if all hexes are connected
+func is_grid_connected(grid: Array) -> bool:
+	if grid.size() <= 1:
+		return true
+		
+	# Start flood fill from first hex
+	var visited = {}
+	var to_visit = [grid[0]]
+	
+	while to_visit.size() > 0:
+		var current = to_visit.pop_back()
+		visited[current.index] = true
+		
+		# Check all neighbors
+		for neighbor_index in current.neighbors:
+			# Find the neighbor in our grid
+			for hex in grid:
+				if hex.index == neighbor_index and not visited.has(hex.index):
+					to_visit.append(hex)
+	
+	# If we visited all hexes, the grid is connected
+	return visited.size() == grid.size()
 
 func find_hex_matches(large_array: Array, small_array: Array) -> Array:
 	var matches = []
