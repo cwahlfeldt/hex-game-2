@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://dpsnxtmh5yx32"]
+[gd_scene load_steps=6 format=3 uid="uid://dpsnxtmh5yx32"]
 
 [ext_resource type="Script" path="res://game.gd" id="1_i56dy"]
+[ext_resource type="Script" path="res://scripts/hex_grid_manager.gd" id="3_4lipp"]
 [ext_resource type="Script" path="res://camera_3d.gd" id="3_nqcw2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eq3qc"]
@@ -13,16 +14,23 @@ albedo_color = Color(0.62, 0.62, 0.62, 1)
 [node name="Game" type="Node3D" parent="."]
 script = ExtResource("1_i56dy")
 
+[node name="HexGridManager" type="Node3D" parent="Game"]
+script = ExtResource("3_4lipp")
+
 [node name="Background" type="MeshInstance3D" parent="."]
-transform = Transform3D(30, 0, 0, 0, 30, 0, 0, 0, 30, 0, -1, 0)
+transform = Transform3D(30, 0, 0, 0, 30, 0, 0, 0, 30, 0, -0.635, 0)
 material_override = SubResource("StandardMaterial3D_eq3qc")
 mesh = SubResource("PlaneMesh_8una2")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.986427, -0.0498228, 0.15646, -0.0827928, 0.671948, 0.735956, -0.1418, -0.738921, 0.658702, 1.20737, 6.5444, 5.84063)
+transform = Transform3D(0.984808, -0.150384, 0.0868241, 0, 0.5, 0.866025, -0.173648, -0.852869, 0.492404, 0.11, 10, 5.6)
 projection = 1
-size = 9.0
+size = 19.715
 script = ExtResource("3_nqcw2")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(0.5, 0.75, -0.433013, 0, 0.5, 0.866025, 0.866025, -0.433013, 0.25, 0, 0, 0)
+transform = Transform3D(0.273959, 0.866603, -0.417068, 0, 0.433659, 0.901077, 0.961741, -0.246858, 0.118805, 0, 0, 0)
+shadow_enabled = true
+shadow_bias = 0.025
+shadow_opacity = 0.52
+shadow_blur = 0.661

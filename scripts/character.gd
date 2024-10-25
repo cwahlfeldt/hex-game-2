@@ -18,7 +18,6 @@ enum CHARACTER_TYPE {PLAYER, GRUNT}
 		path = value
 		print("Path set for ", name, ": ", path) 
 
-
 var current_health: int = max_health:
 	set(value):
 		current_health = clampi(value, 0, max_health)
