@@ -7,13 +7,15 @@ signal character_died(id)
 
 enum CHARACTER_TYPE {PLAYER, GRUNT}
 
+@onready var hex_grid_manager: HexGridManager = $HexGridManager
+
 @export var id: String = "character_0"
 @export var type: CHARACTER_TYPE = CHARACTER_TYPE.PLAYER
 @export var max_health: int = 3
 @export var move_range: int = 1
 @export var atk_range: int = 1
 @export var current_hex_id: int = 0
-@export var path: PackedVector3Array = []:
+@export var path: PackedVector3Array = [Vector3(0,0,0), ]:
 	set(value):
 		path = value
 		print("Path set for ", name, ": ", path) 
@@ -34,6 +36,16 @@ func take_damage(amount: int) -> void:
 func heal(amount: int) -> void:
 	current_health += amount
 
-# Add this method to handle position updates
-func update_position(new_position: Vector3) -> void:
-	global_transform.origin = new_position
+func move_unit(to_hex: int, _callback) -> void:
+	var new_path = hex_grid_manager.find_path(current_hex_id, to_hex)
+	
+	if path.size() > 1:
+		path = new_path.slice(0, move_range + 1) # account for current hex
+		var current_hex = hex_grid_manager.get_hex_at_position(path[path.size() - 1])
+		current_hex_id = current_hex.index
+		
+		Animate.through_with_callback_and_rotate(
+			self,
+			path,
+			_callback.bind(current_hex.index),
+		)

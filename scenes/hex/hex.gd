@@ -41,6 +41,6 @@ func unhighlight() -> void:
 	pass
 
 # You might want to add methods for handling clicks or other interactions
-func _on_input_event(camera: Node, event: InputEvent, event_position: Vector3, normal: Vector3, shape_idx: int) -> void:
+func _on_input_event(_camera: Node, event: InputEvent, _event_position: Vector3, _normal: Vector3, shape_idx: int) -> void:
 	if (event.is_pressed() && event.is_action("Left Mouse Click")):
 		SignalBus.selected_hex.emit(index)

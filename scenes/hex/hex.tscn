@@ -9,15 +9,17 @@ height = 0.2
 radius = 0.9
 
 [node name="Hex" type="Area3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("1_f7l8w")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CylinderShape3D_i5m3r")
 
 [node name="hex_mesh" parent="." instance=ExtResource("2_6tivy")]
+visible = false
 
 [node name="hex" parent="." instance=ExtResource("3_yilcm")]
 visible = false
+
+[node name="hex2" parent="." instance=ExtResource("3_yilcm")]
 
 [connection signal="input_event" from="." to="." method="_on_input_event"]

@@ -4,6 +4,7 @@ const player_scene = preload("res://scenes/player/player.tscn")
 const enemy_scene = preload("res://scenes/enemy/enemy.tscn")
 
 @onready var hex_grid_manager: HexGridManager = $HexGridManager
+
 var players_id = 0
 var hex_grid
 var path_finding: AStar3D
@@ -19,13 +20,13 @@ func _ready() -> void:
 		"show_labels": true,
 		"holes_to_remove": 12
 	})
-
+	
 	hex_grid = hex_grid_manager.get_grid()
 	path_finding = hex_grid_manager._astar
 	
 	# Set up turn queue with player at start
 	turn_queue.add_entity(init_player(players_id))
-	range(3).map(func(n):
+	range(2).map(func(n):
 		var enemy = init_enemy(rng.randi_range(30, hex_grid.size()))
 		turn_queue.add_entity(enemy)
 	)
@@ -35,35 +36,33 @@ func _ready() -> void:
 func _on_selected_hex(to_hex):
 	var character: Character = turn_queue.get_current()
 	if character and character.name == 'Player' and not is_moving:
-		print(to_hex)
-		move_character(character, character.current_hex_id, to_hex)
+		character.move_unit(to_hex, _on_character_move_end)
 
-func _on_turn_changed(entity: Character):
-	print("It's now " + entity.id + "'s turn!  ", entity.path, "  ", entity.current_hex_id)
-	if entity and entity.name != 'Player':
-		print("SHOULD_WORK: ", entity.current_hex_id, ", ", players_id)
-		move_character(entity, entity.current_hex_id, players_id)
+func _on_turn_changed(character: Character):
+	print("It's now " + character.id + "'s turn!  ", character.path, "  ", character.current_hex_id)
+	if character and character.name != 'Player':
+		print("SHOULD_WORK: ", character.current_hex_id, ", ", players_id)
+		character.move_unit(players_id, _on_character_move_end)
 	else:
 		is_moving = false
 
-func _on_character_move_end():
+func _on_character_move_end(_players_id: int):
+	players_id = _players_id
 	turn_queue.next_turn()
 
-func move_character(character: Character, from_hex, to_hex):
-	print("TO_HEX: ", to_hex)
-	var path = hex_grid_manager.find_path(from_hex, to_hex)
-	if path.size() > 1:
-		character.path = path.slice(0, character.move_range + 1) # account for current hex
-		var current_hex = hex_grid_manager.get_hex_at_position(character.path[character.path.size() - 1])
-		character.current_hex_id = current_hex.index
-		players_id = current_hex.index
-		Animate.through_with_callback(
-			character, 
-			character.path,
-			_on_character_move_end,
-		)
-		is_moving = true
-		print("Path set for ", character.name, ": ", character.path)
+#func move_character(character: Character, from_hex, to_hex):
+	#var path = hex_grid_manager.find_path(from_hex, to_hex)
+	#if path.size() > 1:
+		#character.path = path.slice(0, character.move_range + 1) # account for current hex
+		#var current_hex = hex_grid_manager.get_hex_at_position(character.path[character.path.size() - 1])
+		#character.current_hex_id = current_hex.index
+		#players_id = current_hex.index
+		#
+		#Animate.through_with_callback_and_rotate(
+			#character, 
+			#character.path,
+			#_on_character_move_end,
+		#)
 
 func init_player(index: int) -> Character:
 	var player: Character = player_scene.instantiate()
@@ -95,7 +94,7 @@ func init_enemy(preferred_index: int) -> Character:
 	add_child(enemy)
 	enemy.global_transform.origin = location
 	return enemy
-	
+
 func get_valid_spawn_indices() -> Array:
 	# Get array of valid hex indices that exist in the grid
 	var valid_indices = []
