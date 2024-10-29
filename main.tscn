@@ -1,7 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://dpsnxtmh5yx32"]
+[gd_scene load_steps=5 format=3 uid="uid://dpsnxtmh5yx32"]
 
 [ext_resource type="Script" path="res://game.gd" id="1_i56dy"]
-[ext_resource type="Script" path="res://scripts/hex_grid_manager.gd" id="3_4lipp"]
 [ext_resource type="Script" path="res://camera_3d.gd" id="3_nqcw2"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_eq3qc"]
@@ -13,9 +12,6 @@ albedo_color = Color(0.62, 0.62, 0.62, 1)
 
 [node name="Game" type="Node3D" parent="."]
 script = ExtResource("1_i56dy")
-
-[node name="HexGridManager" type="Node3D" parent="Game"]
-script = ExtResource("3_4lipp")
 
 [node name="Background" type="MeshInstance3D" parent="."]
 transform = Transform3D(30, 0, 0, 0, 30, 0, 0, 0, 30, 0, -0.635, 0)

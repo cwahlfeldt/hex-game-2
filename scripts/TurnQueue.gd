@@ -1,13 +1,11 @@
 extends Node3D
 
-class_name TurnQueue
-
 # Array to store entities in the queue
 var queue: Array = []
 var current_index: int = 0
 
 # Signal emitted when turn changes
-signal turn_changed(entity)
+#signal turn_changed(entity)
 
 func _init():
 	queue = []
@@ -29,7 +27,7 @@ func remove_entity(entity) -> void:
 			current_index = 0
 
 # Get the entity whose turn it currently is
-func get_current() -> Node:
+func get_current() -> Node3D:
 	if queue.is_empty():
 		return null
 	return queue[current_index]
@@ -40,13 +38,13 @@ func next_turn() -> void:
 		return
 		
 	current_index = (current_index + 1) % queue.size()
-	emit_signal("turn_changed", get_current())
+	SignalBus.turn_change.emit(get_current())
 
 # Reset the queue to the beginning
 func reset() -> void:
 	current_index = 0
 	if not queue.is_empty():
-		emit_signal("turn_changed", get_current())
+		SignalBus.turn_change.emit(get_current())
 
 # Clear all entities from the queue
 func clear() -> void:

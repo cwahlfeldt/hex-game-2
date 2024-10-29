@@ -1,5 +1,5 @@
-class_name Player
 extends Character
+class_name Player
 
 func _ready() -> void:
 	super()

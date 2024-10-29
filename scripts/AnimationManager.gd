@@ -1,8 +1,4 @@
-class_name Animate
-extends Node
-
-# Singleton instance
-static var instance: Animate
+extends Node3D
 
 # Default animation settings
 const DEFAULT_DURATION: float = 0.15
