@@ -31,20 +31,20 @@ class TweenConfig:
 static func look_at_position(
 	node: Node3D, 
 	target_pos: Vector3,
-	config: TweenConfig = TweenConfig.new(DEFAULT_ROTATION_DURATION)
+	c: TweenConfig = TweenConfig.new(DEFAULT_ROTATION_DURATION)
 ) -> Tween:
 	if target_pos == node.global_position:
 		return null
 		
 	_kill_tween(node)
-	var tween = _create_tween(node, config)
+	var tween = _create_tween(node, c)
 	
 	var target_basis = node.global_transform.looking_at(target_pos, Vector3.UP).basis
 	tween.tween_property(
 		node,
 		"basis",
 		target_basis,
-		config.duration
+		c.duration
 	)
 	
 	return tween
@@ -82,14 +82,14 @@ static func look_at_and_move_to(
 static func through_with_rotation(
 	node: Node3D,
 	positions: Array[Vector3],
-	config: TweenConfig = TweenConfig.new(),
+	c: TweenConfig = TweenConfig.new(),
 	loop: bool = false
 ) -> Tween:
 	if positions.is_empty():
 		return null
 		
 	_kill_tween(node)
-	var tween = _create_tween(node, config)
+	var tween = _create_tween(node, c)
 	
 	var points_to_use = positions.duplicate()
 	if loop and positions.size() > 1:
@@ -111,27 +111,26 @@ static func through_with_rotation(
 			node,
 			"position",
 			point,
-			config.duration
+			c.duration
 		)
 		
-		if config.delay > 0:
-			tween.tween_interval(config.delay)
+		if c.delay > 0:
+			tween.tween_interval(c.delay)
 	
 	if loop:
 		tween.set_loops()
 	
 	return tween
 
-# Existing methods remain unchanged...
-static func to(node: Node3D, target: Vector3, config: TweenConfig = TweenConfig.new()) -> Tween:
+static func to(node: Node3D, target: Vector3, c: TweenConfig = TweenConfig.new()) -> Tween:
 	_kill_tween(node)
-	var tween = _create_tween(node, config)
+	var tween = _create_tween(node, c)
 	
 	tween.tween_property(
 		node,
 		"position",
 		target,
-		config.duration
+		c.duration
 	)
 	
 	return tween
@@ -139,14 +138,14 @@ static func to(node: Node3D, target: Vector3, config: TweenConfig = TweenConfig.
 static func through(
 	node: Node3D, 
 	positions: Array[Vector3], 
-	config: TweenConfig = TweenConfig.new(),
+	c: TweenConfig = TweenConfig.new(),
 	loop: bool = false
 ) -> Tween:
 	if positions.is_empty():
 		return null
 		
 	_kill_tween(node)
-	var tween = _create_tween(node, config)
+	var tween = _create_tween(node, c)
 	
 	var points_to_use = positions.duplicate()
 	if loop and positions.size() > 1:
@@ -157,11 +156,11 @@ static func through(
 			node,
 			"position",
 			point,
-			config.duration
+			c.duration
 		)
 		
-		if config.delay > 0:
-			tween.tween_interval(config.delay)
+		if c.delay > 0:
+			tween.tween_interval(c.delay)
 	
 	if loop:
 		tween.set_loops()
@@ -172,22 +171,22 @@ static func through_with_callback(
 	node: Node3D, 
 	positions: Array[Vector3], 
 	callback: Callable,
-	config: TweenConfig = TweenConfig.new(),
+	c: TweenConfig = TweenConfig.new(),
 	loop: bool = false
 ) -> Tween:
-	var tween = through(node, positions, config, loop)
+	var tween = through(node, positions, c, loop)
 	if tween and not loop:
 		tween.tween_callback(callback)
 	return tween
 
-static func through_with_callback_and_rotate(
+func through_with_callback_and_rotate(
 	node: Node3D, 
 	positions: Array[Vector3], 
 	callback: Callable,
-	config: TweenConfig = TweenConfig.new(),
+	c: TweenConfig = TweenConfig.new(),
 	loop: bool = false
 ) -> Tween:
-	var tween = through_with_rotation(node, positions, config, loop)
+	var tween = through_with_rotation(node, positions, c, loop)
 	if tween and not loop:
 		tween.tween_callback(callback)
 	return tween
@@ -198,10 +197,10 @@ static func _kill_tween(node: Node) -> void:
 		active_tweens[node].kill()
 	active_tweens.erase(node)
 
-static func _create_tween(node: Node, config: TweenConfig) -> Tween:
+static func _create_tween(node: Node, c: TweenConfig) -> Tween:
 	var tween = node.create_tween()
-	tween.set_trans(config.trans_type)
-	tween.set_ease(config.ease_type)
+	tween.set_trans(c.trans_type)
+	tween.set_ease(c.ease_type)
 	active_tweens[node] = tween
 	return tween
 
@@ -209,10 +208,10 @@ static func _create_tween(node: Node, config: TweenConfig) -> Tween:
 static func config(
 	duration: float = DEFAULT_DURATION,
 	trans: Tween.TransitionType = DEFAULT_TRANS,
-	ease: Tween.EaseType = DEFAULT_EASE,
+	c_ease: Tween.EaseType = DEFAULT_EASE,
 	delay: float = DEFAULT_DELAY
 ) -> TweenConfig:
-	return TweenConfig.new(duration, trans, ease, delay)
+	return TweenConfig.new(duration, trans, c_ease, delay)
 
 static func smooth(duration: float = DEFAULT_DURATION) -> TweenConfig:
 	return TweenConfig.new(duration, Tween.TRANS_SINE, Tween.EASE_IN_OUT)

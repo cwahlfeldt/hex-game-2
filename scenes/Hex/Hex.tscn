@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://cawm772khd5fp"]
+
+[ext_resource type="Script" path="res://scenes/Hex/Hex.gd" id="1_m7i3b"]
+[ext_resource type="PackedScene" uid="uid://qt05iuufdgng" path="res://scenes/Hex/HexMesh.tscn" id="2_4nhds"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_i5m3r"]
+height = 0.2
+radius = 0.9
+
+[node name="Hex" type="Area3D"]
+script = ExtResource("1_m7i3b")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CylinderShape3D_i5m3r")
+
+[node name="HexMesh" parent="." instance=ExtResource("2_4nhds")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.0747725, 0)
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]
+[connection signal="mouse_entered" from="." to="." method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_mouse_exited"]

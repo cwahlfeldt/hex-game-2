@@ -11,7 +11,7 @@ func _ready() -> void:
 	
 	HexGridManager.configure({
 		"map_size": 5,
-		"show_labels": true,
+		"show_labels": false,
 		"holes_to_remove": 8
 	})
 	
@@ -19,8 +19,9 @@ func _ready() -> void:
 	
 	player = UnitManager.spawn_player(hex_grid[0])
 	TurnQueue.add_entity(player)
+	SignalBus.players_turn_end.emit(TurnQueue.get_current())
 	
-	range(2).map(func(n):
+	range(2).map(func(_n):
 		var random_hex = hex_grid[rng.randi_range(30, hex_grid.size())]
 		var enemy = UnitManager.spawn_enemy(random_hex)
 		TurnQueue.add_entity(enemy)
@@ -30,15 +31,24 @@ func _ready() -> void:
 
 func _on_selected_hex(to_hex):
 	var unit: Unit = TurnQueue.get_current()
-	if unit and unit.name == 'Player' and not is_moving:
+	if unit and unit.name == 'Player':
 		unit.move_unit(to_hex)
+		SignalBus.players_turn_start.emit(unit)
+	else:
+		SignalBus.players_turn_start.emit(unit)
+		
 
 func _on_turn_changed(unit: Unit):
 	print("It's now " + unit.name + "'s turn!  ", unit.current_hex)
 	if unit and unit.name != 'Player':
 		unit.move_unit(player.current_hex)
+		SignalBus.enemy_turn_start.emit(unit)
 	else:
-		is_moving = false
+		SignalBus.players_turn_end.emit(unit)
 
-func _on_unit_move_end(_unit):
+		
+
+func _on_unit_move_end(unit: Unit):
 	TurnQueue.next_turn()
+	if unit and unit.name != 'Player':
+		SignalBus.enemy_turn_end.emit(unit)

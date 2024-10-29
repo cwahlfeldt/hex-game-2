@@ -1,9 +1,6 @@
 extends Node3D
 class_name Unit
 
-signal health_changed(new_health, max_health)
-signal character_died(id)
-
 enum UNIT_TYPE {PLAYER, GRUNT}
 
 @export var type: UNIT_TYPE = UNIT_TYPE.PLAYER
@@ -11,13 +8,7 @@ enum UNIT_TYPE {PLAYER, GRUNT}
 @export var move_range: int = 1
 @export var atk_range: int = 1
 @export var current_hex: Hex = null
-
-var current_health: int = max_health:
-	set(value):
-		current_health = clampi(value, 0, max_health)
-		emit_signal("health_changed", current_health, max_health)
-		if current_health <= 0:
-			emit_signal("unit_died", self)
+@export var current_health: int = max_health
 
 func _ready() -> void:
 	current_health = max_health

@@ -1,6 +1,6 @@
 extends Node3D
 
-const hex_scene = preload("res://scenes/hex/hex.tscn")
+const hex_scene = preload("res://scenes/Hex/Hex.tscn")
 
 const directions = {
 	"northWest": {"q": -1, "r": 0, "s": 1},
@@ -59,6 +59,7 @@ func clear() -> void:
 func initialize() -> void:
 	clear()
 	_generate_grid()
+	_generate_neighbors()
 	_setup_pathfinding()
 	_initialized = true
 
@@ -75,31 +76,43 @@ func _generate_grid() -> void:
 		var coord = hex_coords[i]
 		var location = _hex_to_3d(coord.q, coord.r)
 		
-		var neighbors: Array[int] = []
-		for direction in directions.values():
-			var neighbor_coord = {
-				"q": coord.q + direction.q,
-				"r": coord.r + direction.r,
-				"s": coord.s + direction.s
-			}
-			var neighbor_index = _find_hex_index(hex_coords, neighbor_coord)
-			if neighbor_index != -1:
-				neighbors.append(neighbor_index)
-		
 		var hex_data = {
 			"index": i,
 			"coord": coord,
 			"location": location,
-			"neighbors": neighbors
+			"neighbors": []
 		}
 		
-		var hex_instance = hex_scene.instantiate() as Hex
+		var hex_instance: Hex = hex_scene.instantiate() as Hex
 		hex_instance.name = "Hex_" + str(i)
 		hex_instance.set_data(hex_data)
 		_grid.append(hex_instance)
 	
 	_remove_random_hexes()
 	_create_visual_elements()
+
+func _generate_neighbors():
+	for i in _grid.size():
+		var hex = _grid[i]
+		var neighbors: Array = []
+		for direction in directions.values():
+			var neighbor_coord = {
+				"q": hex.coord.q + direction.q,
+				"r": hex.coord.r + direction.r,
+				"s": hex.coord.s + direction.s
+			}
+			
+			var neighbor = _find_hex_by_coord(neighbor_coord)
+			if neighbor != null:
+				neighbors.append(neighbor)
+			
+		hex.neighbors = neighbors
+
+func _find_hex_by_coord(coord: Dictionary) -> Hex:
+	for hex in _grid:
+		if hex.coord.q == coord.q and hex.coord.r == coord.r and hex.coord.s == coord.s:
+			return hex
+	return null
 
 func _generate_hex_coords() -> Array:
 	var coords = []
@@ -115,48 +128,17 @@ func _hex_to_3d(q: float, r: float) -> Vector3:
 	var z = hex_size * (sqrt(3.0) * (r + q * 0.5))
 	return Vector3(x, 0, z)
 
-func _find_hex_index(coords: Array, coord: Dictionary) -> int:
-	for i in coords.size():
-		var c = coords[i]
-		if c.q == coord.q and c.r == coord.r and c.s == coord.s:
-			return i
-	return -1
-
 func _remove_random_hexes() -> void:
-	var removed = 0
-	
-	while removed < holes_to_remove and _grid.size() > 2:
-		var random_index = (randi() % (_grid.size() - 1)) + 1
-		var hex_to_remove = _grid[random_index]
-		
-		if hex_to_remove.index == 0:
-			continue
-		
-		_grid.remove_at(random_index)
-		hex_to_remove.queue_free()
-		
-		if _is_grid_connected():
-			removed += 1
-		else:
-			_grid.insert(random_index, hex_to_remove)
-
-func _is_grid_connected() -> bool:
-	if _grid.size() <= 1:
-		return true
-	
-	var visited = {}
-	var to_visit = [_grid[0]]
-	
-	while to_visit.size() > 0:
-		var current = to_visit.pop_back()
-		visited[current.index] = true
-		
-		for neighbor_index in current.get_neighbor_indices():
-			var neighbor = get_hex_by_index(neighbor_index)
-			if neighbor and not visited.has(neighbor.index):
-				to_visit.append(neighbor)
-	
-	return visited.size() == _grid.size()
+	if (_grid.size() > 2):
+		for i in range(holes_to_remove):
+			var random_index = (randi() % (_grid.size() - 1)) + 1
+			var hex_to_remove = _grid[random_index]
+			
+			if hex_to_remove.index == 0:
+				continue
+			
+			_grid.remove_at(random_index)
+			hex_to_remove.queue_free()
 
 func _create_visual_elements() -> void:
 	for hex in _grid:
@@ -168,7 +150,7 @@ func _create_visual_elements() -> void:
 			label.text = str(hex.index)
 			label.font_size = 90
 			label.rotate(Vector3(1,0,0), 30)
-			label.translate(Vector3(0,0.5,0))
+			label.translate(Vector3(0,-0.05,0))
 			label.modulate = Color.BLACK
 			_grid_container.add_child(label)
 
@@ -177,20 +159,20 @@ func _setup_pathfinding() -> void:
 	
 	# Add points
 	for hex in _grid:
-		_astar.add_point(hex.index, hex.get_location())
+		_astar.add_point(hex.index, hex.location)
 	
 	# Connect points
 	for hex in _grid:
-		for neighbor_index in hex.get_neighbor_indices():
-			if _astar.has_point(neighbor_index) and not _astar.are_points_connected(hex.index, neighbor_index):
-				_astar.connect_points(hex.index, neighbor_index)
+		for neighbor in hex.neighbors:
+			if _astar.has_point(neighbor.index) and not _astar.are_points_connected(hex.index, neighbor.index):
+				_astar.connect_points(hex.index, neighbor.index)
 
 # Public methods
 func find_path(from_index: int, to_index: int) -> Array[Hex]:
 	if not _astar or not _astar.has_point(from_index) or not _astar.has_point(to_index):
 		return []
 	
-	var path_points = _astar.get_point_path(from_index, to_index)
+	var path_points = _astar.get_point_path(from_index, to_index, true)
 	var hex_path: Array[Hex] = []
 	
 	for point in path_points:
@@ -247,12 +229,12 @@ func set_holes(holes: int) -> void:
 		clear()
 		initialize()
 
-func set_show_labels(show: bool) -> void:
-	show_labels = show
+func set_show_labels(_show: bool) -> void:
+	show_labels = _show
 	if _initialized:
 		for child in _grid_container.get_children():
 			if child is Label3D:
-				child.visible = show
+				child.visible = _show
 
 func is_initialized() -> bool:
 	return _initialized

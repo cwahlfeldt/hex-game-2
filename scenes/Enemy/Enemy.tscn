@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://dlsm7dy6voygu"]
 
-[ext_resource type="Script" path="res://scenes/enemy/enemy.gd" id="1_4edcb"]
-[ext_resource type="PackedScene" uid="uid://c0uaxd2g7x4mh" path="res://assets/models/enemy.glb" id="2_tmgkt"]
+[ext_resource type="Script" path="res://scenes/Enemy/Enemy.gd" id="1_uhv0x"]
+[ext_resource type="PackedScene" uid="uid://c0uaxd2g7x4mh" path="res://assets/models/enemy.glb" id="2_b6gvr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tjtsu"]
 albedo_color = Color(1, 0.27451, 0.192157, 1)
@@ -12,12 +12,12 @@ radial_segments = 61
 rings = 10
 
 [node name="Enemy" type="Node3D"]
-script = ExtResource("1_4edcb")
+script = ExtResource("1_uhv0x")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.255, 0, 0, 0, 0.255, 0, 0, 0, 0.255, 0, 1.1, 0)
 visible = false
 mesh = SubResource("CapsuleMesh_e3t7k")
 
-[node name="enemy" parent="." instance=ExtResource("2_tmgkt")]
-transform = Transform3D(0.255, 0, 0, 0, 0.255, 0, 0, 0, 0.255, 0, 1.1, 0)
+[node name="enemy" parent="." instance=ExtResource("2_b6gvr")]
+transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, 1.1, 0)

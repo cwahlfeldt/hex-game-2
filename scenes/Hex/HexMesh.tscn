@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://qt05iuufdgng"]
+
+[ext_resource type="PackedScene" uid="uid://dcmq10k5wcaro" path="res://assets/models/hex.blend" id="1_fo8ts"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_25jmi"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0.4)
+
+[node name="HexMesh" instance=ExtResource("1_fo8ts")]
+
+[node name="Camera" parent="." index="0"]
+visible = false
+
+[node name="Cylinder" parent="." index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_25jmi")

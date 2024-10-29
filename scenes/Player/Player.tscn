@@ -1,8 +1,8 @@
 [gd_scene load_steps=6 format=3 uid="uid://bl0uxg6ds5q2x"]
 
-[ext_resource type="Script" path="res://scenes/player/player.gd" id="1_vnxya"]
-[ext_resource type="PackedScene" uid="uid://765kfb8rwt3q" path="res://assets/models/player.glb" id="2_ss50r"]
-[ext_resource type="Script" path="res://scenes/enemy/enemy.gd" id="3_p3cy4"]
+[ext_resource type="Script" path="res://scenes/Player/Player.gd" id="1_81i1t"]
+[ext_resource type="PackedScene" uid="uid://765kfb8rwt3q" path="res://assets/models/player.glb" id="2_228cj"]
+[ext_resource type="Script" path="res://scenes/Enemy/Enemy.gd" id="3_jbrqu"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tjtsu"]
 albedo_color = Color(0.168627, 0.27451, 1, 1)
@@ -13,13 +13,13 @@ radial_segments = 61
 rings = 10
 
 [node name="Player" type="Node3D"]
-script = ExtResource("1_vnxya")
+script = ExtResource("1_81i1t")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0.819082, 0)
 visible = false
 mesh = SubResource("CapsuleMesh_e3t7k")
 
-[node name="player" parent="." instance=ExtResource("2_ss50r")]
+[node name="player" parent="." instance=ExtResource("2_228cj")]
 transform = Transform3D(0.25, 0, 0, 0, 0.25, 0, 0, 0, 0.25, 0, 0.819082, 0)
-script = ExtResource("3_p3cy4")
+script = ExtResource("3_jbrqu")

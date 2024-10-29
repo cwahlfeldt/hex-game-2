@@ -1,11 +1,14 @@
 extends Node3D
 
-const player_scene = preload("res://scenes/player/player.tscn")
-const enemy_scene = preload("res://scenes/enemy/enemy.tscn")
+const player_scene = preload("res://scenes/Player/Player.tscn")
+const enemy_scene = preload("res://scenes/Enemy/Enemy.tscn")
 
 var player: Player
 var enemies: Array[Enemy]
 
+#func _ready() -> void:
+
+	
 func spawn_player(hex: Hex):
 	player = player_scene.instantiate()
 	_spawn(player, hex)
@@ -28,3 +31,13 @@ func get_player():
 
 func get_enemies():
 	return enemies
+
+#func _on_players_turn_start(player: Unit):
+	#HexGridManager.get_grid().map(func(h: Hex):
+		#h.unhighlight()
+	#)
+#
+#func _on_players_turn_end(player: Unit):
+	#player.current_hex.neighbors.map(func(n: Hex):
+		#n.highlight('blue')
+	#)
