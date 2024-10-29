@@ -7,9 +7,11 @@ var index: int = -1
 var coord: Dictionary = {"q": 0, "r": 0, "s": 0}  # Cube coordinates
 var location: Vector3 = Vector3.ZERO  # Renamed from position to avoid conflicts
 var neighbors: Array[int] = []  # Renamed and typed
+var unit: Unit = null
 
 func _ready() -> void:
 	global_transform.origin = location
+
 # Use set_data instead of _init
 func set_data(data: Dictionary) -> void:
 	if data.is_empty():

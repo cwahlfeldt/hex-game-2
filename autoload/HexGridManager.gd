@@ -213,6 +213,7 @@ func get_hex_by_index(index: int) -> Hex:
 			return hex
 	return null
 
+
 func get_hex_at_position(world_pos: Vector3) -> Hex:
 	var closest_hex: Hex = null
 	var closest_distance = INF

@@ -17,11 +17,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-SignalBus="*res://scripts/SignalBus.gd"
-HexGridManager="*res://scripts/HexGridManager.gd"
-AnimationManager="*res://scripts/AnimationManager.gd"
-TurnQueue="*res://scripts/TurnQueue.gd"
-UnitManager="*res://scripts/UnitManager.gd"
+SignalBus="*res://autoload/SignalBus.gd"
+HexGridManager="*res://autoload/HexGridManager.gd"
+AnimationManager="*res://autoload/AnimationManager.gd"
+TurnQueue="*res://autoload/TurnQueue.gd"
+UnitManager="*res://autoload/UnitManager.gd"
 
 [input]
 

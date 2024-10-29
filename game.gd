@@ -7,6 +7,7 @@ var is_moving = false
 func _ready() -> void:
 	SignalBus.selected_hex.connect(_on_selected_hex)
 	SignalBus.turn_change.connect(_on_turn_changed)
+	SignalBus.turn_end.connect(_on_unit_move_end)
 	
 	HexGridManager.configure({
 		"map_size": 5,
@@ -28,16 +29,16 @@ func _ready() -> void:
 	print("It's now " + TurnQueue.get_current().name + "'s turn!  ", TurnQueue.get_current().current_hex)
 
 func _on_selected_hex(to_hex):
-	var character: Character = TurnQueue.get_current()
-	if character and character.name == 'Player' and not is_moving:
-		character.move_unit(to_hex, _on_character_move_end)
+	var unit: Unit = TurnQueue.get_current()
+	if unit and unit.name == 'Player' and not is_moving:
+		unit.move_unit(to_hex)
 
-func _on_turn_changed(character: Character):
-	print("It's now " + character.name + "'s turn!  ", character.current_hex)
-	if character and character.name != 'Player':
-		character.move_unit(player.current_hex, _on_character_move_end)
+func _on_turn_changed(unit: Unit):
+	print("It's now " + unit.name + "'s turn!  ", unit.current_hex)
+	if unit and unit.name != 'Player':
+		unit.move_unit(player.current_hex)
 	else:
 		is_moving = false
 
-func _on_character_move_end(current_hex: Hex):
+func _on_unit_move_end(_unit):
 	TurnQueue.next_turn()
