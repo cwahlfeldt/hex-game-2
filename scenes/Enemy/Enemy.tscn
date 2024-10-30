@@ -12,6 +12,7 @@ radial_segments = 61
 rings = 10
 
 [node name="Enemy" type="Node3D"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0)
 script = ExtResource("1_uhv0x")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]

@@ -17,11 +17,21 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Utilities="*res://autoload/Utilities.gd"
 SignalBus="*res://autoload/SignalBus.gd"
 HexGridManager="*res://autoload/HexGridManager.gd"
 AnimationManager="*res://autoload/AnimationManager.gd"
 TurnQueue="*res://autoload/TurnQueue.gd"
 UnitManager="*res://autoload/UnitManager.gd"
+
+[display]
+
+window/size/always_on_top=true
+window/size/position="2000,400"
+
+[global_group]
+
+Tile=""
 
 [input]
 

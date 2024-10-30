@@ -6,9 +6,6 @@ const enemy_scene = preload("res://scenes/Enemy/Enemy.tscn")
 var player: Player
 var enemies: Array[Enemy]
 
-#func _ready() -> void:
-
-	
 func spawn_player(hex: Hex):
 	player = player_scene.instantiate()
 	_spawn(player, hex)

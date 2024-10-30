@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://3ujxl763kyd4"]
+
+[ext_resource type="Script" path="res://scenes/Debug/AStarDebugVisualizer.gd" id="1_edyg5"]
+
+[node name="AStarDebugVisualizer" type="Node3D"]
+script = ExtResource("1_edyg5")

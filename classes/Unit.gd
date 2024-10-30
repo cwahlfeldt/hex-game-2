@@ -35,5 +35,4 @@ func move_unit(to_hex: Hex) -> void:
 		)
 
 func _on_turn_end():
-	HexGridManager.get_hex_by_index(current_hex.index).unit = self
 	SignalBus.turn_end.emit(self)
