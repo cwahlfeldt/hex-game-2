@@ -24,15 +24,13 @@ var _grid: Array[Hex] = []
 var _astar: AStar3D
 var _initialized: bool = false
 var _grid_container: Node3D
-var _astar_debug: AStarDebugVisualizer
+@onready var _astar_debug: AStarDebugVisualizer
 
 func _ready() -> void:
 	SignalBus.update_hex_grid.connect(_on_update_grid)
 	# Only create the container node, but don't initialize the grid yet
 	_grid_container = Node3D.new()
 	_grid_container.name = "HexGridContainer"
-
-
 
 	add_child(_grid_container)
 	if show_astar:
@@ -201,6 +199,9 @@ func _setup_pathfinding() -> void:
 					_astar.connect_points(hex.index, neighbor.index)
 	
 	if show_astar:
+		var astar_debug_scene = load("res://scenes/Debug/AStarDebugVisualizer.tscn")
+		_astar_debug = astar_debug_scene.instantiate()
+		_grid_container.add_child(_astar_debug)
 		_astar_debug.visualize_astar(_astar)
 
 func update_pathfinding() -> void:

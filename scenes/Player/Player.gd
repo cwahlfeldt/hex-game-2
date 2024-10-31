@@ -8,6 +8,7 @@ func _ready() -> void:
 	
 	name = "Player"
 	type = UNIT_TYPE.PLAYER
+	move_range = 1
 
 func _on_players_turn(player: Unit, is_first_turn = false):
 	if is_first_turn:
@@ -18,7 +19,7 @@ func _on_players_turn(player: Unit, is_first_turn = false):
 		HexGridManager.get_grid().map(func(h: Hex):
 			h.unhighlight()
 		)
-
+	
 func _on_players_turn_end(player: Unit):
 	player.current_hex.neighbors.map(func(n: Hex):
 		n.highlight('b')

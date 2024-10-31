@@ -32,6 +32,13 @@ func get_current() -> Node3D:
 		return null
 	return queue[current_index]
 
+func get_next() -> Node3D:
+	if queue.is_empty():
+		return null
+	var next_index = (current_index + 1) % queue.size()
+	return queue[next_index]
+	
+
 func get_all_entities() -> Array:
 	if queue.is_empty():
 		return []

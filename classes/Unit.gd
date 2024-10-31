@@ -24,7 +24,7 @@ func move_unit(to_hex: Hex) -> void:
 	if new_path.size() > 1:
 		var path = new_path.slice(0, move_range + 1) # account for current hex
 		current_hex = path[path.size() - 1]
-	
+
 		var locations: Array[Vector3]
 		locations.assign(path.map(func(hex) -> Vector3: return hex.location))
 		
