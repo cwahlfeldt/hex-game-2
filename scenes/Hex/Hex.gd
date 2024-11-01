@@ -7,7 +7,17 @@ var index: int = -1
 var coord: Dictionary = {"q": 0, "r": 0, "s": 0}  # Cube coordinates
 var location: Vector3 = Vector3.ZERO  # Renamed from position to avoid conflicts
 var neighbors: Array = []  # Renamed and typed
-var traversable: bool = true
+var unit: Unit = null
+var traversable: bool = true:
+	set(value):
+		traversable = value
+		if value == false:
+			var material: StandardMaterial3D = $HexMesh/Cylinder.get_surface_override_material(0)
+			var unique_material = material.duplicate()
+			unique_material.albedo_color.a = 0.1
+			$HexMesh/Cylinder.set_surface_override_material(0, unique_material)
+	get:
+		return traversable
 
 func _ready() -> void:
 	# SignalBus.turn_end.connect(_on_turn_end)
@@ -22,6 +32,7 @@ func set_data(data: Dictionary) -> void:
 	coord = data.coord
 	location = data.location
 	neighbors = data.neighbors
+	# traversable = true
 
 # Helper methods
 func get_neighbor_indices() -> Array:
@@ -32,6 +43,9 @@ func get_coordinate() -> Dictionary:
 	
 func get_location() -> Vector3:
 	return location
+
+func remove_unit(_unit: Unit):
+	unit = null
 
 # Optional: Add visual feedback for selection/hover
 func highlight(color) -> void:
@@ -52,6 +66,3 @@ func unhighlight() -> void:
 func _on_input_event(_camera: Node, event: InputEvent, _event_position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
 	if (event.is_pressed() && event.is_action("Left Mouse Click")):
 		SignalBus.selected_hex.emit(self)
-
-# func _on_turn_end(u):
-# 	print(u.name)

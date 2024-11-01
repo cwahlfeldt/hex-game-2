@@ -96,11 +96,11 @@ func visualize_astar(astar: AStar3D) -> void:
 		var is_disabled = astar.is_point_disabled(point_id)
 		_draw_point(pos, is_disabled)
 
-func _draw_point(position: Vector3, is_disabled: bool) -> void:
+func _draw_point(point: Vector3, is_disabled: bool) -> void:
 	var mesh_instance = MeshInstance3D.new()
 	mesh_instance.mesh = _point_mesh
 	mesh_instance.material_override = _disabled_material if is_disabled else _active_material
-	mesh_instance.position = position
+	mesh_instance.position = point
 	_debug_points.add_child(mesh_instance)
 
 func _draw_connection(from_pos: Vector3, to_pos: Vector3) -> void:

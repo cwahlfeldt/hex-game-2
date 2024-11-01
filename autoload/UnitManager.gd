@@ -8,20 +8,20 @@ var enemies: Array[Enemy]
 
 func spawn_player(hex: Hex):
 	player = player_scene.instantiate()
-	_spawn(player, hex)
-	return player
+	var unit = _spawn(player, hex)
+	return unit
 
 func spawn_enemy(hex: Hex):
 	var enemy = enemy_scene.instantiate()
-	_spawn(enemy, hex)
-	enemies.append(enemy)
-	enemy.name = "Enemy_" + str(enemies.size())
-	return enemy
+	var unit = _spawn(enemy, hex)
+	enemies.append(unit)
+	unit.name = "Enemy_" + str(enemies.size())
+	return unit
 
-func _spawn(scene, hex: Hex):
-	scene.current_hex = hex
-	add_child(scene)
-	scene.global_transform.origin = hex.location
+func _spawn(unit, hex: Hex):
+	HexGridManager.get_instance().register_unit(unit, hex)
+	add_child(unit)
+	return unit
 
 func get_player():
 	return player
