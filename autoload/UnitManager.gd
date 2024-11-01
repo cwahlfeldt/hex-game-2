@@ -19,8 +19,15 @@ func spawn_enemy(hex: Hex):
 	return unit
 
 func _spawn(unit, hex: Hex):
-	HexGridManager.get_instance().register_unit(unit, hex)
+	print("Spawning ", unit.name, " at hex: ", hex.index)  # Debug starting hex
 	add_child(unit)
+	unit.global_position = hex.location
+	# Set current_hex before registration
+	unit.current_hex = hex
+	HexGridManager.get_instance().register_unit(unit, hex)
+	
+	# Verify the hex after registration
+	print(unit.name, " final hex: ", unit.current_hex.index)  # Debug final hex
 	return unit
 
 func get_player():

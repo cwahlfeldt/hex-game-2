@@ -20,19 +20,15 @@ func _ready() -> void:
 	var traversable_grid = hex_grid_manager.get_traversable_grid()
 
 	player = UnitManager.spawn_player(hex_grid[hex_grid_manager.player_start_index])
-	TurnQueue.add_entity(player)
-
 	for _i in range(2):
 		var random_hex = traversable_grid[rng.randi_range(HexGridManager.map_size * 7, traversable_grid.size())]
 		var enemy = UnitManager.spawn_enemy(random_hex)
-		TurnQueue.add_entity(enemy)
 	
 	SignalBus.players_turn.emit(TurnQueue.get_current(), true)
 
 func _on_hex_selected(hex: Hex) -> void:
 	var current_unit = HexGridManager.get_instance().get_current_unit()
 	if current_unit != null:
-		# Only allow movement if it's this unit's turn
 		HexGridManager.get_instance().move_unit(current_unit, hex)
 
 	#Wait for initialization
@@ -86,4 +82,3 @@ func _on_hex_selected(hex: Hex) -> void:
 # 	TurnQueue.next_turn()
 # 	if unit and unit.name != 'Player':
 # 		SignalBus.enemy_turn_end.emit(unit)
-# 	await update_blocked_hexes()
