@@ -22,12 +22,13 @@ func _ready() -> void:
 	player = UnitManager.spawn_player(hex_grid[hex_grid_manager.player_start_index])
 	for _i in range(2):
 		var random_hex = traversable_grid[rng.randi_range(HexGridManager.map_size * 7, traversable_grid.size())]
-		var enemy = UnitManager.spawn_enemy(random_hex)
+		UnitManager.spawn_enemy(random_hex)
 	
-	SignalBus.players_turn.emit(TurnQueue.get_current(), true)
+	# SignalBus.players_turn.emit(TurnQueue.get_current(), true)
 
 func _on_hex_selected(hex: Hex) -> void:
 	var current_unit = HexGridManager.get_instance().get_current_unit()
+	# SignalBus.players_turn.emit(TurnQueue.get_current())
 	if current_unit != null:
 		HexGridManager.get_instance().move_unit(current_unit, hex)
 

@@ -2,20 +2,19 @@ extends HexGrid
 
 static var instance: HexGridManager
 
-signal unit_moved(from_hex: Hex, to_hex: Hex, unit: Node3D)
 signal grid_initialized
 
 @export var holes_to_remove: int = 8
 
 @export_group("Debug Visualization")
 @export var show_labels: bool = true
-@export var show_astar: bool = false
+@export var show_astar: bool = true
 
 var _astar_debug: AStarDebugVisualizer
 
 # Unit management
-var _unit_positions: Dictionary = {}  # Unit -> Hex mapping
-var _hex_units: Dictionary = {}       # Hex -> Array[Unit] mapping
+var _unit_positions: Dictionary = {} # Unit -> Hex mapping
+var _hex_units: Dictionary = {} # Hex -> Array[Unit] mapping
 var _player_unit: Unit = null
 
 var player_start_index: int:
@@ -45,6 +44,7 @@ func initialize_grid(config: Dictionary = {}) -> void:
 	_setup_debug_visualization()
 	_setup_pathfinding()
 
+
 	if show_labels:
 		_create_debug_labels()
 	
@@ -66,7 +66,15 @@ func _remove_random_hexes() -> void:
 			if hex_to_remove.index == player_start_index:
 				continue
 			
+			# Remove this hex from its neighbors' lists
+			for neighbor in hex_to_remove.neighbors:
+				neighbor.neighbors.erase(hex_to_remove)
+			
+			# Clear this hex's neighbors
+			hex_to_remove.neighbors.clear()
 			hex_to_remove.traversable = false
+			
+			# Update pathfinding
 			if _astar and _astar.has_point(hex_to_remove.index):
 				_astar.remove_point(hex_to_remove.index)
 
@@ -75,7 +83,7 @@ func _create_debug_labels() -> void:
 		if hex.traversable:
 			var label_position = Vector3(hex.get_location().x, 0.3, hex.get_location().z)
 			var label = Utilities.create_label(
-				str(hex.index), 
+				str(hex.index),
 				label_position,
 				Color.BLACK
 			)
@@ -90,7 +98,7 @@ func register_unit(unit: Unit, hex: Hex) -> void:
 		if not _hex_units.has(hex):
 			_hex_units[hex] = []
 		_hex_units[hex].append(unit)
-		unit.current_hex = hex  # Make sure this is set
+		unit.current_hex = hex # Make sure this is set
 		unit.global_position = hex.location
 
 		if unit.type == Unit.UNIT_TYPE.PLAYER:
@@ -107,6 +115,9 @@ func unregister_unit(unit: Unit) -> void:
 		_unit_positions.erase(unit)
 		TurnQueue.remove_entity(unit)
 
+func has_units(hex: Hex) -> bool:
+	return _hex_units.has(hex) and not _hex_units[hex].is_empty()
+
 # Turn Management
 func get_current_unit() -> Unit:
 	return TurnQueue.get_current()
@@ -115,10 +126,55 @@ func is_unit_turn(unit: Unit) -> bool:
 	return TurnQueue.get_current() == unit
 
 func can_move_to(hex: Hex) -> bool:
-	return hex.traversable and not _hex_units.has(hex)
+	return hex.traversable and not has_units(hex)
 
 func move_unit(unit: Unit, to_hex: Hex) -> void:
 	var from_hex = unit.current_hex
+	var target_hex = to_hex
+	
+	# If target or path has units, find alternate path
+	if has_units(to_hex):
+		print("Target hex occupied, finding alternate path")
+		# Check surrounding hexes of target, starting with closest
+		var valid_neighbors = []
+		for neighbor in to_hex.neighbors:
+			if can_move_to(neighbor):
+				var test_path = find_path(from_hex.index, neighbor.index)
+				# Check if path is clear
+				var path_clear = true
+				for hex in test_path:
+					if has_units(hex) and hex != from_hex:
+						path_clear = false
+						break
+				if path_clear:
+					valid_neighbors.append(neighbor)
+		
+		if valid_neighbors.size() > 0:
+			target_hex = valid_neighbors[0]
+		else:
+			print("No valid path found")
+			SignalBus.turn_end.emit(unit)
+			return
+	
+	var path = find_path(from_hex.index, target_hex.index)
+	
+	# Check if any hex in path has units
+	var valid_path = []
+	for hex in path:
+		if has_units(hex) and hex != from_hex:
+			break
+		valid_path.append(hex)
+	
+	if valid_path.size() <= 1:
+		print("No valid path without unit collision")
+		SignalBus.turn_end.emit(unit)
+		return
+		
+	# Limit path to move range
+	if valid_path.size() > unit.move_range + 1:
+		valid_path = valid_path.slice(0, unit.move_range + 1)
+	
+	target_hex = valid_path[valid_path.size() - 1]
 	
 	# Update hex tracking
 	if from_hex:
@@ -128,109 +184,40 @@ func move_unit(unit: Unit, to_hex: Hex) -> void:
 				_hex_units.erase(from_hex)
 	
 	# Update unit position
-	_unit_positions[unit] = to_hex
-	unit.current_hex = to_hex
+	_unit_positions[unit] = target_hex
+	unit.current_hex = target_hex
+
+	if unit.type == Unit.UNIT_TYPE.PLAYER:
+		SignalBus.players_turn.emit(unit)
+	else:
+		SignalBus.enemy_turn.emit(unit)
 	
 	# Add to new hex
-	if not _hex_units.has(to_hex):
-		_hex_units[to_hex] = []
-	_hex_units[to_hex].append(unit)
-
-	var path = find_path(from_hex.index, to_hex.index)
-	if path.size() > unit.move_range + 1:
-		var true_path = path.slice(0, unit.move_range + 1)
-		print('unit: ', unit)
-		print('path', path)
-		print('true_path ', true_path)
-		print('\n')
-		# Move animation
-		AnimationManager.through_with_callback_and_rotate(
-			unit,
-			[from_hex.location, true_path[true_path.size() - 1].location],
-			func(): 
-				SignalBus.turn_end.emit(unit)
-		)
-
-# func simple_move_unit(unit: Unit, to_hex: Hex) -> void:
-# 	var from_hex = unit.current_hex
-# 	print("Moving ", unit.name, " from hex ", from_hex.index, " to hex ", to_hex.index)
-
-# 	# Get path and limit by move range
-# 	var path = find_path(from_hex.index, to_hex.index)
-# 	print(path)
-# 	if path.size() > unit.move_range + 1:  # +1 because path includes current hex
-# 		print("Path too long, limiting to move range: ", unit.move_range)
-# 		path = path.slice(0, unit.move_range + 1)
-# 		to_hex = path[path.size() - 1]
-
-# 	# Update unit position tracking
-# 	if from_hex:
-# 		if _hex_units.has(from_hex):
-# 			_hex_units[from_hex].erase(unit)
-# 			if _hex_units[from_hex].is_empty():
-# 				_hex_units.erase(from_hex)
-	
-# 	# Update unit position
-# 	_unit_positions[unit] = to_hex
-# 	unit.current_hex = to_hex
-	
-# 	# Add to new hex
-# 	if not _hex_units.has(to_hex):
-# 		_hex_units[to_hex] = []
-# 	_hex_units[to_hex].append(unit)
+	if not _hex_units.has(target_hex):
+		_hex_units[target_hex] = []
+	_hex_units[target_hex].append(unit)
 	
 	# Move animation
-	# AnimationManager.through_with_callback_and_rotate(
-	# 	unit,
-	# 	[from_hex.location, to_hex.location],
-	# 	func(): 
-	# 		print("Move complete for ", unit.name, " at hex ", unit.current_hex.index)
-	# 		SignalBus.turn_end.emit(unit)
-	# )
+	AnimationManager.through_with_callback_and_rotate(
+		unit,
+		[from_hex.location, target_hex.location],
+		func():
+			SignalBus.turn_end.emit(unit)
+	)
 
 # In HexGridManager.gd
 func _on_turn_end(unit: Unit) -> void:
 	if is_unit_turn(unit):
-		#update_traversable_hexes()
 		if (unit.type == Unit.UNIT_TYPE.PLAYER):
 			_player_unit.current_hex = unit.current_hex
-
+			SignalBus.players_turn_end.emit(unit, true)
+		
 		TurnQueue.next_turn()
+
 		var current_unit = TurnQueue.get_current()
 		if (current_unit.type != Unit.UNIT_TYPE.PLAYER):
+			SignalBus.enemy_turn_end.emit(current_unit, true)
 			move_unit(current_unit, _player_unit.current_hex)
-		# if current_unit.type == Unit.UNIT_TYPE.GRUNT:
-		# 	#await get_tree().create_timer(0.5).timeout
-		# 	# var path = find_path(current_unit.current_hex.index, _player_unit.current_hex.index)
-		# 	#print("Path found for ", current_unit.name, ": ", path.size(), " hexes")  # Debug
-		# 	# if path.size() > 1:
-
-			# else:
-				# SignalBus.turn_end.emit(current_unit)
-		# else:
-		# 	#print("Player's turn")  # Debug
-		# 	SignalBus.players_turn.emit(current_unit, true)
-	
-#func update_traversable_hexes() -> void:
-	#print("Updating traversable hexes")  # Debug print
-	#_setup_pathfinding()
-	#
-	## Make hexes with units non-traversable
-	#for unit in _unit_positions:
-		#var hex = _unit_positions[unit]
-		#print("Making hex ", hex.index, " non-traversable for unit ", unit.name)  # Debug print
-		#if _astar and _astar.has_point(hex.index):
-			#_astar.remove_point(hex.index)
-			#
-			## Optionally disconnect from neighbors
-			#for neighbor in hex.neighbors:
-				#if _astar.has_point(neighbor.index):
-					#if _astar.are_points_connected(hex.index, neighbor.index):
-						#_astar.disconnect_points(hex.index, neighbor.index)
-	#
-	# Update visualization
-	if show_astar and _astar_debug:
-		_astar_debug.visualize_astar(_astar)
 
 # Utility
 func get_instance() -> HexGridManager:
