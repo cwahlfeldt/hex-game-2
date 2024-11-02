@@ -5,7 +5,7 @@ enum UNIT_TYPE {PLAYER, GRUNT}
 
 @export var type: UNIT_TYPE = UNIT_TYPE.PLAYER
 @export var max_health: int = 3
-@export var move_range: int = 0
+@export var move_range: int = 1
 @export var atk_range: int = 1
 @export var current_hex: Hex = null
 @export var current_health: int = max_health

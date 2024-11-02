@@ -85,7 +85,7 @@ func _create_debug_labels() -> void:
 # Unit Management
 func register_unit(unit: Unit, hex: Hex) -> void:
 	if not _unit_positions.has(unit):
-		print("Registering unit: ", unit.name, " to hex: ", hex.index)  # Debug
+		#print("Registering unit: ", unit.name, " to hex: ", hex.index)  # Debug
 		_unit_positions[unit] = hex
 		if not _hex_units.has(hex):
 			_hex_units[hex] = []
@@ -119,13 +119,6 @@ func can_move_to(hex: Hex) -> bool:
 
 func move_unit(unit: Unit, to_hex: Hex) -> void:
 	var from_hex = unit.current_hex
-	print("\nMove Debug:")
-	print("Unit: ", unit.name)
-	print("From hex: ", from_hex.index)
-	print("To hex: ", to_hex.index)
-	
-	# Store old position before updating
-	# var old_position = _unit_positions[unit]
 	
 	# Update hex tracking
 	if from_hex:
@@ -142,78 +135,81 @@ func move_unit(unit: Unit, to_hex: Hex) -> void:
 	if not _hex_units.has(to_hex):
 		_hex_units[to_hex] = []
 	_hex_units[to_hex].append(unit)
-	
-	# Move animation
-	AnimationManager.through_with_callback_and_rotate(
-		unit,
-		[from_hex.location, to_hex.location],
-		func(): 
-			print("\nMove Complete Debug:")
-			print("Unit: ", unit.name)
-			print("Final hex: ", unit.current_hex.index)
-			SignalBus.turn_end.emit(unit)
-	)
 
-func simple_move_unit(unit: Unit, to_hex: Hex) -> void:
-	var from_hex = unit.current_hex
-	print("Moving ", unit.name, " from hex ", from_hex.index, " to hex ", to_hex.index)
-
-	# Get path and limit by move range
 	var path = find_path(from_hex.index, to_hex.index)
-	if path.size() > unit.move_range + 1:  # +1 because path includes current hex
-		print("Path too long, limiting to move range: ", unit.move_range)
-		path = path.slice(0, unit.move_range + 1)
-		to_hex = path[path.size() - 1]
+	if path.size() > unit.move_range + 1:
+		var true_path = path.slice(0, unit.move_range + 1)
+		print('unit: ', unit)
+		print('path', path)
+		print('true_path ', true_path)
+		print('\n')
+		# Move animation
+		AnimationManager.through_with_callback_and_rotate(
+			unit,
+			[from_hex.location, true_path[true_path.size() - 1].location],
+			func(): 
+				SignalBus.turn_end.emit(unit)
+		)
 
-	# Update unit position tracking
-	if from_hex:
-		if _hex_units.has(from_hex):
-			_hex_units[from_hex].erase(unit)
-			if _hex_units[from_hex].is_empty():
-				_hex_units.erase(from_hex)
+# func simple_move_unit(unit: Unit, to_hex: Hex) -> void:
+# 	var from_hex = unit.current_hex
+# 	print("Moving ", unit.name, " from hex ", from_hex.index, " to hex ", to_hex.index)
+
+# 	# Get path and limit by move range
+# 	var path = find_path(from_hex.index, to_hex.index)
+# 	print(path)
+# 	if path.size() > unit.move_range + 1:  # +1 because path includes current hex
+# 		print("Path too long, limiting to move range: ", unit.move_range)
+# 		path = path.slice(0, unit.move_range + 1)
+# 		to_hex = path[path.size() - 1]
+
+# 	# Update unit position tracking
+# 	if from_hex:
+# 		if _hex_units.has(from_hex):
+# 			_hex_units[from_hex].erase(unit)
+# 			if _hex_units[from_hex].is_empty():
+# 				_hex_units.erase(from_hex)
 	
-	# Update unit position
-	_unit_positions[unit] = to_hex
-	unit.current_hex = to_hex
+# 	# Update unit position
+# 	_unit_positions[unit] = to_hex
+# 	unit.current_hex = to_hex
 	
-	# Add to new hex
-	if not _hex_units.has(to_hex):
-		_hex_units[to_hex] = []
-	_hex_units[to_hex].append(unit)
+# 	# Add to new hex
+# 	if not _hex_units.has(to_hex):
+# 		_hex_units[to_hex] = []
+# 	_hex_units[to_hex].append(unit)
 	
 	# Move animation
-	AnimationManager.through_with_callback_and_rotate(
-		unit,
-		[from_hex.location, to_hex.location],
-		func(): 
-			print("Move complete for ", unit.name, " at hex ", unit.current_hex.index)
-			SignalBus.turn_end.emit(unit)
-	)
+	# AnimationManager.through_with_callback_and_rotate(
+	# 	unit,
+	# 	[from_hex.location, to_hex.location],
+	# 	func(): 
+	# 		print("Move complete for ", unit.name, " at hex ", unit.current_hex.index)
+	# 		SignalBus.turn_end.emit(unit)
+	# )
 
 # In HexGridManager.gd
 func _on_turn_end(unit: Unit) -> void:
-	print("Turn ending for: ", unit.name, ' ', unit.current_hex.index)
-		  # Debug
-
 	if is_unit_turn(unit):
 		#update_traversable_hexes()
 		if (unit.type == Unit.UNIT_TYPE.PLAYER):
 			_player_unit.current_hex = unit.current_hex
+
 		TurnQueue.next_turn()
 		var current_unit = TurnQueue.get_current()
-		
-		if current_unit.type == Unit.UNIT_TYPE.GRUNT:
-			#await get_tree().create_timer(0.5).timeout
-			var path = find_path(current_unit.current_hex.index, _player_unit.current_hex.index)
-			#print("Path found for ", current_unit.name, ": ", path.size(), " hexes")  # Debug
-			if path.size() > 1:
-				move_unit(current_unit, path[1])
-			else:
-				#print("No path found, ending turn")  # Debug
-				SignalBus.turn_end.emit(current_unit)
-		else:
-			#print("Player's turn")  # Debug
-			SignalBus.players_turn.emit(current_unit, true)
+		if (current_unit.type != Unit.UNIT_TYPE.PLAYER):
+			move_unit(current_unit, _player_unit.current_hex)
+		# if current_unit.type == Unit.UNIT_TYPE.GRUNT:
+		# 	#await get_tree().create_timer(0.5).timeout
+		# 	# var path = find_path(current_unit.current_hex.index, _player_unit.current_hex.index)
+		# 	#print("Path found for ", current_unit.name, ": ", path.size(), " hexes")  # Debug
+		# 	# if path.size() > 1:
+
+			# else:
+				# SignalBus.turn_end.emit(current_unit)
+		# else:
+		# 	#print("Player's turn")  # Debug
+		# 	SignalBus.players_turn.emit(current_unit, true)
 	
 #func update_traversable_hexes() -> void:
 	#print("Updating traversable hexes")  # Debug print
@@ -237,5 +233,5 @@ func _on_turn_end(unit: Unit) -> void:
 		_astar_debug.visualize_astar(_astar)
 
 # Utility
-static func get_instance() -> HexGridManager:
+func get_instance() -> HexGridManager:
 	return instance
