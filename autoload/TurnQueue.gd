@@ -3,13 +3,12 @@ extends Node3D
 # Array to store entities in the queue
 var queue: Array = []
 var current_index: int = 0
+var turns_taken: int = 0
 
-# Signal emitted when turn changes
-#signal turn_changed(entity)
-
-func _init():
+func _ready() -> void:
 	queue = []
 	current_index = 0
+	SignalBus.turn_end.connect(_on_turn_end)
 
 # Add an entity to the queue
 func add_entity(entity) -> void:
@@ -70,3 +69,10 @@ func size() -> int:
 # Check if the queue is empty
 func is_empty() -> bool:
 	return queue.is_empty()
+
+func _on_turn_end(unit):
+	turns_taken += 1
+	if turns_taken == queue.size():
+		turns_taken = 0
+		SignalBus.all_turns_end.emit(TurnQueue.get_all_entities())
+		

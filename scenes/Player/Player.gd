@@ -1,31 +1,26 @@
 extends Unit
 class_name Player
 
+var _highlighted_hexes: Array[Hex] = []
+
 func _ready() -> void:
 	super()
-	SignalBus.connect("players_turn", _on_players_turn)
-	SignalBus.connect("players_turn_end", _on_players_turn_end)
-	
 	name = "Player"
 	type = UNIT_TYPE.PLAYER
+	atk_range_type = ATK_RANGE_TYPE.MELEE
 	move_range = 1
 
-	# current_hex.neighbors.map(func(h: Hex):
-	# 	h.highlight('b')
-	# )
-
-func _on_players_turn(player: Unit, is_first_turn = false):
-	if is_first_turn:
-		current_hex.neighbors.map(func(h: Hex):
-			h.highlight('b')
-		)
-	else:
-		HexGridManager.get_instance().get_grid().map(func(h: Hex):
-			if h.traversable:
-				h.unhighlight()
-		)
+# Call this when a unit is selected
+func show_movement_range(unit: Unit) -> void:
+	clear_highlights()
 	
-func _on_players_turn_end(player: Unit):
-	player.current_hex.neighbors.map(func(h: Hex):
-		h.highlight('b')
-	)
+	var available_moves = HexGridManager.get_available_moves(unit.current_hex, unit.move_range)
+	for hex in available_moves:
+		hex.highlight("b") # Using blue channel for movement range
+		_highlighted_hexes.append(hex)
+
+# Call this to clear highlights (when deselecting unit or after movement)
+func clear_highlights() -> void:
+	for hex in _highlighted_hexes:
+		hex.unhighlight()
+	_highlighted_hexes.clear()

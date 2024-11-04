@@ -32,7 +32,6 @@ func set_data(data: Dictionary) -> void:
 	coord = data.coord
 	location = data.location
 	neighbors = data.neighbors
-	# traversable = true
 
 # Helper methods
 func get_neighbor_indices() -> Array:

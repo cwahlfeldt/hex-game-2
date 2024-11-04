@@ -23,6 +23,7 @@ HexGridManager="*res://autoload/HexGridManager.gd"
 AnimationManager="*res://autoload/AnimationManager.gd"
 TurnQueue="*res://autoload/TurnQueue.gd"
 UnitManager="*res://autoload/UnitManager.gd"
+GameManager="*res://autoload/GameManager.gd"
 
 [display]
 
