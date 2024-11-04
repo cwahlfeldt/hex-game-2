@@ -10,6 +10,7 @@ func _ready() -> void:
 	type = UNIT_TYPE.GRUNT
 	max_health = 1
 	move_range = 1
+	current_health = 1
 	
 # Call this when a unit is selected
 func show_movement_range(unit: Unit) -> void:
