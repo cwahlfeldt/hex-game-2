@@ -13,10 +13,10 @@ func _ready() -> void:
 	current_health = 1
 	
 # Call this when a unit is selected
-func show_movement_range(unit: Unit) -> void:
+func show_movement_range() -> void:
 	clear_highlights()
 
-	var available_moves = HexGridManager.get_available_moves(unit.current_hex, unit.move_range)
+	var available_moves = HexGridManager.get_available_moves(current_hex, move_range)
 	for hex in available_moves:
 		hex.highlight("r") # Using blue channel for movement range
 		_highlighted_hexes.append(hex)

@@ -22,6 +22,9 @@ var player_start_index: int:
 
 func _ready() -> void:
 	SignalBus.turn_end.connect(_on_turn_end)
+	SignalBus.selected_hex.connect(_on_selected_hex)
+	SignalBus.player_turn_end.connect(_on_player_turn_end)
+
 	_setup_grid_container()
 
 # Grid Setup Methods
@@ -112,6 +115,7 @@ func unregister_unit(unit: Unit) -> void:
 		if _hex_units[current_hex].is_empty():
 			_hex_units.erase(current_hex)
 		_unit_positions.erase(unit)
+
 		TurnQueue.remove_entity(unit)
 
 func has_units(hex: Hex) -> bool:
@@ -183,11 +187,12 @@ func _update_unit_position(unit: Unit, from_hex: Hex, target_hex: Hex) -> void:
 	if not _hex_units.has(target_hex):
 		_hex_units[target_hex] = []
 	_hex_units[target_hex].append(unit)
-	
-	if unit.type == Unit.UNIT_TYPE.PLAYER:
-		SignalBus.player_turn.emit(unit)
-	else:
-		SignalBus.enemy_turn.emit(unit)
+
+func get_hex_units():
+	return _hex_units
+
+func get_enemies():
+	return TurnQueue.get_all_entities().filter(func(unit): return unit.type != Unit.UNIT_TYPE.PLAYER)
 
 # Turn Management
 func get_current_unit() -> Unit:
@@ -196,15 +201,30 @@ func get_current_unit() -> Unit:
 func is_unit_turn(unit: Unit) -> bool:
 	return TurnQueue.get_current() == unit
 
-func _on_turn_end(unit: Unit) -> void:
-	if is_unit_turn(unit):
-		if unit.type == Unit.UNIT_TYPE.PLAYER:
-			_player_unit.current_hex = unit.current_hex
-			SignalBus.player_turn_end.emit(unit)
-		
+func _on_turn_end(last_unit: Unit) -> void:
+	if is_unit_turn(last_unit):
 		TurnQueue.next_turn()
 		
+		if last_unit.type == Unit.UNIT_TYPE.PLAYER:
+			_player_unit.current_hex = last_unit.current_hex
+			SignalBus.player_turn_end.emit(last_unit)
+		
 		var current_unit = TurnQueue.get_current()
+
+		if last_unit.type != Unit.UNIT_TYPE.PLAYER and current_unit.type != Unit.UNIT_TYPE.PLAYER:
+			SignalBus.enemy_turn.emit(current_unit)
+			
 		if current_unit.type != Unit.UNIT_TYPE.PLAYER:
 			SignalBus.enemy_turn_end.emit(current_unit)
-			move_unit(current_unit, _player_unit.current_hex)
+
+		print("last unit: ", last_unit, " current unit: ", current_unit)
+
+# Triggers the players turn
+func _on_selected_hex(hex: Hex):
+	var unit = TurnQueue.get_current()
+	if unit.type == Unit.UNIT_TYPE.PLAYER:
+		SignalBus.player_turn.emit(unit, hex)
+
+# When players turn ends trigger the enemy's turn
+func _on_player_turn_end(_unit):
+	SignalBus.enemy_turn.emit(TurnQueue.get_current())
