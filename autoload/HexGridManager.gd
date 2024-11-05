@@ -23,7 +23,7 @@ var player_start_index: int:
 func _ready() -> void:
 	SignalBus.turn_end.connect(_on_turn_end)
 	SignalBus.selected_hex.connect(_on_selected_hex)
-	SignalBus.player_turn_end.connect(_on_player_turn_end)
+	# SignalBus.player_turn_end.connect(_on_player_turn_end)
 
 	_setup_grid_container()
 
@@ -191,6 +191,21 @@ func _update_unit_position(unit: Unit, from_hex: Hex, target_hex: Hex) -> void:
 func get_hex_units():
 	return _hex_units
 
+func get_units_in_attack_range(from_unit: Unit, attack_range: int) -> Array[Unit]:
+	var units_in_range: Array[Unit] = []
+	var from_hex = from_unit.current_hex
+	
+	# Loop through our existing hex_units dictionary
+	for hex in _hex_units:
+		# Simple hex distance check
+		if get_hex_distance(from_hex, hex) <= attack_range:
+			# Add all units on this hex except the attacking unit
+			for unit in _hex_units[hex]:
+				if unit != from_unit:
+					units_in_range.append(unit)
+	
+	return units_in_range
+
 func get_enemies():
 	return TurnQueue.get_all_entities().filter(func(unit): return unit.type != Unit.UNIT_TYPE.PLAYER)
 
@@ -202,29 +217,28 @@ func is_unit_turn(unit: Unit) -> bool:
 	return TurnQueue.get_current() == unit
 
 func _on_turn_end(last_unit: Unit) -> void:
-	if is_unit_turn(last_unit):
-		TurnQueue.next_turn()
-		
-		if last_unit.type == Unit.UNIT_TYPE.PLAYER:
-			_player_unit.current_hex = last_unit.current_hex
-			SignalBus.player_turn_end.emit(last_unit)
-		
-		var current_unit = TurnQueue.get_current()
+	if not is_unit_turn(last_unit):
+		return
 
-		if last_unit.type != Unit.UNIT_TYPE.PLAYER and current_unit.type != Unit.UNIT_TYPE.PLAYER:
-			SignalBus.enemy_turn.emit(current_unit)
-			
+	TurnQueue.next_turn()
+	var current_unit = TurnQueue.get_current()
+	
+	# Handle signals based on unit types
+	if last_unit.type == Unit.UNIT_TYPE.PLAYER:
+		SignalBus.player_turn_end.emit(last_unit)
+		# Start enemy sequence after player
 		if current_unit.type != Unit.UNIT_TYPE.PLAYER:
-			SignalBus.enemy_turn_end.emit(current_unit)
-
-		print("last unit: ", last_unit, " current unit: ", current_unit)
+			SignalBus.enemy_turn.emit(current_unit)
+	else:
+		SignalBus.enemy_turn_end.emit(last_unit)
+		# Only chain to next enemy if there is one
+		if current_unit and current_unit.type != Unit.UNIT_TYPE.PLAYER:
+			SignalBus.enemy_turn.emit(current_unit)
+	
+	SignalBus.unit_turn_end.emit(current_unit)
 
 # Triggers the players turn
 func _on_selected_hex(hex: Hex):
 	var unit = TurnQueue.get_current()
 	if unit.type == Unit.UNIT_TYPE.PLAYER:
 		SignalBus.player_turn.emit(unit, hex)
-
-# When players turn ends trigger the enemy's turn
-func _on_player_turn_end(_unit):
-	SignalBus.enemy_turn.emit(TurnQueue.get_current())

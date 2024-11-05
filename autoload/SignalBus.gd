@@ -5,6 +5,7 @@ extends Node3D
 @warning_ignore("unused_signal") signal selected_hex(hex: Hex)
 @warning_ignore("unused_signal") signal turn_change(unit: Unit)
 @warning_ignore("unused_signal") signal turn_end(unit: Unit)
+@warning_ignore("unused_signal") signal unit_turn_end(unit: Unit)
 @warning_ignore("unused_signal") signal player_turn(unit: Unit, selected_hex: Hex)
 @warning_ignore("unused_signal") signal player_turn_end(unit: Unit)
 @warning_ignore("unused_signal") signal enemy_turn(unit: Unit)

@@ -56,13 +56,13 @@ func spawn_initial_units() -> void:
 		UnitManager.spawn_enemy(random_hex)
 
 func connect_signals() -> void:
-	# SignalBus.selected_hex.connect(_on_hex_selected)
 	SignalBus.start_game.connect(_on_game_start)
 	SignalBus.player_turn.connect(_on_player_turn)
 	SignalBus.enemy_turn.connect(_on_enemy_turn)
 	SignalBus.player_turn_end.connect(_on_player_turn_end)
 	SignalBus.enemy_turn_end.connect(_on_enemy_turn_end)
 	SignalBus.all_turns_end.connect(_on_all_turns_end)
+	SignalBus.unit_turn_end.connect(_on_unit_turn_end)
 
 func _on_game_start():
 	game_state = GameState.PLAYING
@@ -73,23 +73,26 @@ func _on_game_start():
 # Turn Management
 func _on_player_turn(unit: Player, hex):
 	unit.clear_highlights()
-
 	HexGridManager.move_unit(unit, hex)
 
 func _on_player_turn_end(unit: Player):
 	unit.show_movement_range()
+	# var units_in_range = HexGridManager.get_units_in_attack_range(unit, 1)
+	# print(units_in_range)
 
 func _on_enemy_turn(unit: Enemy):
 	unit.clear_highlights()
-	# print("start index - ", unit.current_hex.index)
 	HexGridManager.move_unit(unit, player.current_hex)
 
 func _on_enemy_turn_end(unit: Enemy):
+	# var units_in_range = HexGridManager.get_units_in_attack_range(unit, 1)
+	# print(units_in_range)
 	unit.show_movement_range()
-	print("end index - ", unit.current_hex.index)
-	pass
+
+func _on_unit_turn_end(unit: Unit):
+	var units_in_range = HexGridManager.get_units_in_attack_range(unit, unit.atk_range)
+	print(units_in_range, " of ", unit)
+	# unit.show_movement_range()
 
 func _on_all_turns_end(_units):
-	# pass
-	for unit in HexGridManager.get_enemies():
-		unit.show_movement_range()
+	pass
