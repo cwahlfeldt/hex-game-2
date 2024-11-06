@@ -124,4 +124,6 @@ func get_units_in_attack_range(from_unit: Unit, attack_range: int) -> Array[Unit
 
 func get_enemies() -> Array[Unit]:
 	return _enemy_units
-	
+
+func get_all_units() -> Array:
+	return [_player_unit] + _enemy_units

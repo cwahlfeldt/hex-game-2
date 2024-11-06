@@ -1,7 +1,7 @@
 extends HexGrid
 
 var show_labels: bool = true
-var show_astar: bool = true
+var show_astar: bool = false
 var holes_to_remove: int = 8
 var player_start_index: int:
 	get: return map_size + 2
@@ -9,8 +9,6 @@ var player_start_index: int:
 var _astar_debug: AStarDebugVisualizer
 
 func _ready() -> void:
-	SignalBus.selected_hex.connect(_on_selected_hex)
-
 	_setup_grid_container()
 
 # Grid Setup Methods
@@ -90,9 +88,3 @@ func get_available_moves(from_hex: Hex, move_range: int) -> Array[Hex]:
 			available.append(hex)
 	
 	return available
-
-# Triggers the players turn
-func _on_selected_hex(hex: Hex):
-	var unit = TurnManager.get_current()
-	if unit.type == Unit.UNIT_TYPE.PLAYER:
-		SignalBus.player_turn.emit(unit, hex)

@@ -4,11 +4,12 @@ const PLAYER_SCENE = preload("res://scenes/Player/Player.tscn")
 const ENEMY_SCENE = preload("res://scenes/Enemy/Enemy.tscn")
 
 # Configuration
-@export_group("Game Settings")
-@export var grid_size: int = 5
-@export var holes_to_remove = 8
-@export var enemy_count: int = 2
-@export var starting_player_health: int = 3
+var grid_size: int = 5
+var holes_to_remove = 8
+var enemy_count: int = 2
+var starting_player_health: int = 3
+var selected_hex: Hex = null
+
 
 # Core managers and states
 var unit_manager: UnitManager
@@ -16,12 +17,18 @@ var game_state: GameState = GameState.SETUP
 var player: Player = null
 
 enum GameState {
+	# Game states
 	SETUP,
-	START,
-	PLAYERS_TURN,
-	ENEMY_TURN,
-	COMBAT,
-	GAME_OVER
+	IDLE,
+	GAME_OVER,
+
+	# Turn states
+	PLAYERS_IDLE,
+	PLAYER_MOVE,
+	ENEMY_IDLE,
+	ENEMY_MOVE,
+	PLAYER_ATTACK,
+	ENEMY_ATTACK,
 }
 
 func initialize_game(config: Dictionary) -> void:
@@ -36,6 +43,7 @@ func initialize_game(config: Dictionary) -> void:
 		"show_labels": true
 	})
 	
+	# spawned units are added to the turn queue automagically
 	_spawn_initial_units()
 
 func _apply_configuration(config: Dictionary) -> void:
@@ -60,45 +68,72 @@ func _spawn_initial_units() -> void:
 
 func _connect_signals() -> void:
 	SignalBus.start_game.connect(_on_game_start)
-	SignalBus.player_turn.connect(_on_player_turn)
-	SignalBus.enemy_turn.connect(_on_enemy_turn)
-	SignalBus.player_turn_end.connect(_on_player_turn_end)
-	SignalBus.enemy_turn_end.connect(_on_enemy_turn_end)
-	SignalBus.all_turns_end.connect(_on_all_turns_end)
-	SignalBus.unit_turn_end.connect(_on_unit_turn_end)
+	# SignalBus.player_turn.connect(_on_player_turn)
+	# SignalBus.enemy_turn.connect(_on_enemy_turn)
+	# SignalBus.player_turn_end.connect(_on_player_turn)
+	# SignalBus.enemy_turn_end.connect(_on_enemy_turn)
+	# SignalBus.all_turns_end.connect(_on_all_turns_end)
+	SignalBus.turn_start.connect(_on_turn_start)
+	SignalBus.turn_end.connect(_on_turn_end)
+	SignalBus.selected_hex.connect(_on_selected_hex)
 
 func _on_game_start():
-	game_state = GameState.START
+	print("Game Start\n")
+	for unit in UnitManager.get_all_units():
+		unit.show_movement_range()
+		
+	game_state = GameState.PLAYERS_IDLE
 
-	player.show_movement_range()
-	for enemy in UnitManager.get_enemies():
-		enemy.show_movement_range()
-	
-	game_state = GameState.PLAYERS_TURN
+	SignalBus.turn_start.emit(player)
+	SignalBus.player_turn.emit(player, null)
+
+func _play(unit, hex) -> void:
+	if selected_hex == null:
+		print("No hex selected \n")
+		return
+
+	match game_state:
+		GameState.PLAYER_MOVE:
+			UnitManager.move_unit(unit, hex)
+			game_state = GameState.PLAYER_ATTACK
+
+		GameState.PLAYER_ATTACK:
+			var units_in_attack_range = UnitManager.get_units_in_attack_range(unit, unit.atk_range)
+			# if units_in_attack_range.size() == 0:
+			game_state = GameState.ENEMY_MOVE
+
+		GameState.ENEMY_MOVE:
+			UnitManager.move_unit(unit, hex)
+			game_state = GameState.ENEMY_ATTACK
+
+		GameState.ENEMY_ATTACK:
+			var units_in_attack_range = UnitManager.get_units_in_attack_range(unit, unit.atk_range)
+			if units_in_attack_range.size() == 0:
+				print("No units in attack range \n")
+			game_state = GameState.PLAYER_MOVE
 
 # Turn Management
-func _on_player_turn(unit: Player, hex):
-	unit.clear_highlights()
-	UnitManager.move_unit(unit, hex)
+# func _on_player_turn(unit: Player):
+# 	_play(unit, selected_hex)
 
-func _on_player_turn_end(unit: Player):
+# func _on_enemy_turn(unit: Enemy):
+# 	_play(unit, selected_hex)
+
+func _on_turn_start(unit: Unit):
+	if selected_hex != null:
+		unit.clear_highlights()
+		_play(unit, selected_hex)
+
+func _on_turn_end(unit: Unit):
 	unit.show_movement_range()
-	# var units_in_range = UnitManager.get_units_in_attack_range(unit, 1)
-	# print(units_in_range)
+	_play(unit, selected_hex)
 
-func _on_enemy_turn(unit: Enemy):
-	unit.clear_highlights()
-	UnitManager.move_unit(unit, player.current_hex)
-
-func _on_enemy_turn_end(unit: Enemy):
-	# var units_in_range = UnitManager.get_units_in_attack_range(unit, 1)
-	# print(units_in_range)
-	unit.show_movement_range()
-
-func _on_unit_turn_end(unit: Unit):
-	var units_in_range = UnitManager.get_units_in_attack_range(unit, unit.atk_range)
-	print(units_in_range, " of ", unit)
-	# unit.show_movement_range()
-
-func _on_all_turns_end(_units):
-	pass
+# Triggers the players turn
+func _on_selected_hex(hex: Hex):
+	var unit = TurnManager.get_current()
+	selected_hex = hex
+	if unit.type == Unit.UNIT_TYPE.PLAYER:
+		game_state = GameState.PLAYER_MOVE
+		SignalBus.player_turn.emit(unit)
+		SignalBus.turn_start.emit(unit)
+	
