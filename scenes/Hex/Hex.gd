@@ -2,25 +2,29 @@
 class_name Hex
 extends Node3D
 
-# Hex data - make these explicitly typed
+# Hex data
 var index: int = -1
-var coord: Dictionary = {"q": 0, "r": 0, "s": 0}  # Cube coordinates
-var location: Vector3 = Vector3.ZERO  # Renamed from position to avoid conflicts
-var neighbors: Array = []  # Renamed and typed
+var coord: Dictionary = {"q": 0, "r": 0, "s": 0}
+var location: Vector3 = Vector3.ZERO
+var neighbors: Array = []
 var unit: Unit = null
+
+# Hex visuals
+var _initial_hex_opacity = 0.4
+var _empty_hex_opacity = 0.1
+
 var traversable: bool = true:
 	set(value):
 		traversable = value
 		if value == false:
 			var material: StandardMaterial3D = $HexMesh/Cylinder.get_surface_override_material(0)
 			var unique_material = material.duplicate()
-			unique_material.albedo_color.a = 0.1
+			unique_material.albedo_color.a = _empty_hex_opacity
 			$HexMesh/Cylinder.set_surface_override_material(0, unique_material)
 	get:
 		return traversable
 
 func _ready() -> void:
-	# SignalBus.turn_end.connect(_on_turn_end)
 	global_transform.origin = location
 
 # Use set_data instead of _init
@@ -56,7 +60,7 @@ func highlight(color) -> void:
 func unhighlight() -> void:
 	var material: StandardMaterial3D = $HexMesh/Cylinder.get_surface_override_material(0)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color.a = 0.4
+	material.albedo_color.a = _initial_hex_opacity
 	material.albedo_color.r = 1
 	material.albedo_color.g = 1
 	material.albedo_color.b = 1

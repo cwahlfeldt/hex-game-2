@@ -1,8 +1,14 @@
 extends Node3D
 
-#@warning_ignore("unused_signal") signal update_hex_grid()
+# Game Management
 @warning_ignore("unused_signal") signal start_game()
+
+# Grid Management
+@warning_ignore("unused_signal") signal grid_initialized()
 @warning_ignore("unused_signal") signal selected_hex(hex: Hex)
+
+# Turn Management
+@warning_ignore("unused_signal") signal turn_start(unit: Unit)
 @warning_ignore("unused_signal") signal turn_change(unit: Unit)
 @warning_ignore("unused_signal") signal turn_end(unit: Unit)
 @warning_ignore("unused_signal") signal unit_turn_end(unit: Unit)
@@ -11,7 +17,8 @@ extends Node3D
 @warning_ignore("unused_signal") signal enemy_turn(unit: Unit)
 @warning_ignore("unused_signal") signal enemy_turn_end(unit: Unit)
 @warning_ignore("unused_signal") signal all_turns_end(units: Array[Unit])
-@warning_ignore("unused_signal") signal unit_died(unit: Unit)
-@warning_ignore("unused_signal") signal combat_started(unit: Unit)
-@warning_ignore("unused_signal") signal combat_ended(unit: Unit)
-@warning_ignore("unused_signal") signal attack_selected(target_hex: Hex)
+
+# Unit Management
+@warning_ignore("unused_signal") signal unit_moved(unit: Unit, from_hex: Hex, to_hex: Hex)
+@warning_ignore("unused_signal") signal unit_registered(unit: Unit)
+@warning_ignore("unused_signal") signal unit_unregistered(unit: Unit)

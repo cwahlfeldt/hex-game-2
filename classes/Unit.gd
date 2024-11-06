@@ -21,3 +21,10 @@ func take_damage(amount: int) -> void:
 
 func heal(amount: int) -> void:
 	current_health += amount
+
+# func move_to(locations: Array[Vector3], callback: Callable) -> void:
+# 	AnimationManager.through_with_callback_and_rotate(
+# 		self,
+# 		locations,
+# 		callback.bind(self)
+# 	)
