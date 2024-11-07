@@ -8,6 +8,7 @@ func _ready() -> void:
 	name = "Player"
 	type = UNIT_TYPE.PLAYER
 	atk_range_type = ATK_RANGE_TYPE.MELEE
+	atk_range = 1
 	move_range = 1
 
 # Call this when a unit is selected
@@ -17,6 +18,14 @@ func show_movement_range() -> void:
 	var available_moves = HexGridManager.get_available_moves(current_hex, move_range)
 	for hex in available_moves:
 		hex.highlight("b") # Using blue channel for movement range
+		_highlighted_hexes.append(hex)
+
+func show_attack_range() -> void:
+	clear_highlights()
+	
+	var available_moves = HexGridManager.get_available_moves(current_hex, move_range)
+	for hex in available_moves:
+		hex.highlight("g") # Using blue channel for movement range
 		_highlighted_hexes.append(hex)
 
 # Call this to clear highlights (when deselecting unit or after movement)

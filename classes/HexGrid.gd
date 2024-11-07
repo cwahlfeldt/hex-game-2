@@ -167,16 +167,6 @@ func get_hex_distance(hex_a: Hex, hex_b: Hex) -> int:
 	var b = hex_b.coord
 	return int((abs(a.q - b.q) + abs(a.r - b.r) + abs(a.s - b.s)) / 2)
 
-# Gets all hexes within a certain range of a center hex
-func get_hexes_in_range(center: Hex, range: int) -> Array[Hex]:
-	var results: Array[Hex] = []
-	
-	for hex in _grid:
-		if hex.traversable and get_hex_distance(center, hex) <= range:
-			results.append(hex)
-			
-	return results
-
 # Gets the ring of hexes at exactly distance N from center
 func get_hex_ring(center: Hex, radius: int) -> Array[Hex]:
 	var results: Array[Hex] = []

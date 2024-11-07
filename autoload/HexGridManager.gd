@@ -88,3 +88,60 @@ func get_available_moves(from_hex: Hex, move_range: int) -> Array[Hex]:
 			available.append(hex)
 	
 	return available
+
+func find_target_hex(from_hex: Hex, to_hex: Hex, unit: Unit) -> Hex:
+	var available_moves = get_available_moves(from_hex, unit.move_range)
+	if available_moves.is_empty():
+		SignalBus.turn_end.emit(unit)
+		return
+	
+	var path = find_path(from_hex.index, to_hex.index)
+	var target_hex: Hex
+	
+	if path.size() > 1 and path.size() - 1 <= unit.move_range and not UnitManager.has_units(path[-1]):
+		target_hex = path[-1]
+	else:
+		var closest_hex = available_moves[0]
+		var closest_distance = get_hex_distance(closest_hex, to_hex)
+		
+		for hex in available_moves:
+			var distance = get_hex_distance(hex, to_hex)
+			if distance < closest_distance:
+				closest_hex = hex
+				closest_distance = distance
+		
+		target_hex = closest_hex
+	
+	return target_hex
+
+func get_overlapping_move_ranges(unit1: Unit, unit2: Unit) -> Array[Hex]:
+	# Get movement ranges for both units
+	var unit1_moves = get_available_moves(unit1.current_hex, unit1.move_range)
+	var unit2_moves = get_available_moves(unit2.current_hex, unit2.move_range)
+	
+	# Include current positions in the ranges
+	unit1_moves.append(unit1.current_hex)
+	unit2_moves.append(unit2.current_hex)
+	
+	# Find overlapping hexes
+	var overlapping: Array[Hex] = []
+	
+	for hex in unit1_moves:
+		if hex in unit2_moves:
+			overlapping.append(hex)
+	
+	return overlapping
+
+func get_reachable_overlapping_neighbors(unit1: Unit, unit2: Unit) -> Array[Hex]:
+	var overlapping = get_overlapping_move_ranges(unit1, unit2)
+	var reachable: Array[Hex] = []
+	
+	for hex in overlapping:
+		# Check if both units can actually reach this hex in their movement range
+		var path1 = find_path(unit1.current_hex.index, hex.index)
+		var path2 = find_path(unit2.current_hex.index, hex.index)
+		
+		if path1.size() <= unit1.move_range + 1 and path2.size() <= unit2.move_range + 1:
+			reachable.append(hex)
+	
+	return reachable

@@ -57,23 +57,8 @@ func move_unit(unit: Unit, to_hex: Hex) -> void:
 		SignalBus.turn_end.emit(unit)
 		return
 	
-	var path = HexGridManager.find_path(from_hex.index, to_hex.index)
-	var target_hex: Hex
-	
-	if path.size() > 1 and path.size() - 1 <= unit.move_range and not has_units(path[-1]):
-		target_hex = path[-1]
-	else:
-		var closest_hex = available_moves[0]
-		var closest_distance = HexGridManager.get_hex_distance(closest_hex, to_hex)
-		
-		for hex in available_moves:
-			var distance = HexGridManager.get_hex_distance(hex, to_hex)
-			if distance < closest_distance:
-				closest_hex = hex
-				closest_distance = distance
-		
-		target_hex = closest_hex
-		path = HexGridManager.find_path(from_hex.index, target_hex.index)
+	var target_hex: Hex = HexGridManager.find_target_hex(from_hex, to_hex, unit)
+	var path = HexGridManager.find_path(from_hex.index, target_hex.index)
 	
 	_update_unit_position(unit, from_hex, target_hex)
 	
@@ -85,7 +70,7 @@ func move_unit(unit: Unit, to_hex: Hex) -> void:
 		unit,
 		locations,
 		func():
-			SignalBus.turn_end.emit(unit)
+			SignalBus.unit_moved.emit(unit)
 	)
 
 func _update_unit_position(unit: Unit, from_hex: Hex, target_hex: Hex) -> void:

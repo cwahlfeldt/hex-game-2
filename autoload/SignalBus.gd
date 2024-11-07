@@ -19,6 +19,6 @@ extends Node3D
 @warning_ignore("unused_signal") signal all_turns_end(units: Array[Unit])
 
 # Unit Management
-@warning_ignore("unused_signal") signal unit_moved(unit: Unit, from_hex: Hex, to_hex: Hex)
+@warning_ignore("unused_signal") signal unit_moved(unit: Unit)
 @warning_ignore("unused_signal") signal unit_registered(unit: Unit)
 @warning_ignore("unused_signal") signal unit_unregistered(unit: Unit)

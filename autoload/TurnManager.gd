@@ -77,30 +77,28 @@ func _handle_all_turns():
 	if _turns_taken == _turn_queue.size():
 		_turns_taken = 0
 		SignalBus.all_turns_end.emit(get_all_entities())
+	
+func _on_turn_end(_last_unit: Unit) -> void:
+	pass
+	# var current_unit = get_current()
+	
+	# # Handle signals based on unit types
+	# if last_unit.type == Unit.UNIT_TYPE.PLAYER:
+	# 	SignalBus.player_turn_end.emit(last_unit)
+	# 	SignalBus.turn_end.emit(last_unit)
+	# 	# Start enemy sequence after player
+	# 	if current_unit.type != Unit.UNIT_TYPE.PLAYER:
+	# 		SignalBus.turn_start.emit(current_unit)
+	# 		SignalBus.enemy_turn.emit(current_unit)
+	# else:
+	# 	SignalBus.enemy_turn_end.emit(last_unit)
+	# 	SignalBus.turn_end.emit(last_unit)
+	# 	# Only chain to next enemy if there is one
+	# 	if current_unit and current_unit.type != Unit.UNIT_TYPE.PLAYER:
+	# 		SignalBus.turn_start.emit(current_unit)
+	# 		SignalBus.enemy_turn.emit(current_unit)
+	
 
-func _on_turn_end(_unit: Unit):
-	_handle_turn_end(_unit)
-	
-func _handle_turn_end(last_unit: Unit) -> void:
-	if not is_unit_turn(last_unit):
-		return
-	
-	next_turn()
-	var current_unit = get_current()
-	
-	# Handle signals based on unit types
-	if last_unit.type == Unit.UNIT_TYPE.PLAYER:
-		SignalBus.player_turn_end.emit(last_unit)
-		# Start enemy sequence after player
-		if current_unit.type != Unit.UNIT_TYPE.PLAYER:
-			SignalBus.turn_start.emit(current_unit)
-			SignalBus.enemy_turn.emit(current_unit)
-	else:
-		SignalBus.enemy_turn_end.emit(last_unit)
-		# Only chain to next enemy if there is one
-		if current_unit and current_unit.type != Unit.UNIT_TYPE.PLAYER:
-			SignalBus.turn_start.emit(current_unit)
-			SignalBus.enemy_turn.emit(current_unit)
 
 func is_unit_turn(unit: Unit) -> bool:
 	return get_current() == unit

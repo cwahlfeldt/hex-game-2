@@ -9,11 +9,12 @@ var holes_to_remove = 8
 var enemy_count: int = 2
 var starting_player_health: int = 3
 var selected_hex: Hex = null
+var attack_hexes: Array[Hex] = []
 
 
 # Core managers and states
 var unit_manager: UnitManager
-var game_state: GameState = GameState.SETUP
+var current_state: GameState = GameState.SETUP
 var player: Player = null
 
 enum GameState {
@@ -22,17 +23,24 @@ enum GameState {
 	IDLE,
 	GAME_OVER,
 
-	# Turn states
-	PLAYERS_IDLE,
+	# Player states
+	PLAYER_SELECT,
 	PLAYER_MOVE,
-	ENEMY_IDLE,
-	ENEMY_MOVE,
 	PLAYER_ATTACK,
+	PLAYER_CAN_ATTACK,
+	PLAYER_TAKE_DAMAGE,
+
+	# Enemy states
+	ENEMY_IDLE,
+	ENEMY_TURN,
+	ENEMY_MOVE,
 	ENEMY_ATTACK,
+	ENEMY_CAN_ATTACK,
+	ENEMY_TAKE_DAMAGE
 }
 
 func initialize_game(config: Dictionary) -> void:
-	game_state = GameState.SETUP
+	current_state = GameState.SETUP
 
 	_apply_configuration(config)
 	_connect_signals()
@@ -68,72 +76,156 @@ func _spawn_initial_units() -> void:
 
 func _connect_signals() -> void:
 	SignalBus.start_game.connect(_on_game_start)
-	SignalBus.player_turn.connect(_on_player_turn)
-	SignalBus.enemy_turn.connect(_on_enemy_turn)
-	SignalBus.player_turn_end.connect(_on_player_turn)
-	SignalBus.enemy_turn_end.connect(_on_enemy_turn)
-	# SignalBus.all_turns_end.connect(_on_all_turns_end)
-	SignalBus.turn_start.connect(_on_turn_start)
+	SignalBus.unit_moved.connect(_on_unit_moved)
 	SignalBus.turn_end.connect(_on_turn_end)
 	SignalBus.selected_hex.connect(_on_selected_hex)
 
-func _on_game_start():
-	print("Game Start\n")
-	for unit in UnitManager.get_all_units():
-		unit.show_movement_range()
+func _on_game_start() -> void:
+	print("Game Starting...")
+	_change_state(GameState.PLAYER_SELECT)
+
+func _on_unit_moved(unit: Unit) -> void:
+	# Check if unit can attack after moving
+	unit.current_hex.unhighlight()
+
+	if current_state != GameState.PLAYER_ATTACK:
+		SignalBus.turn_end.emit(unit)
+
+func _on_attack_completed(unit: Unit) -> void:
+	SignalBus.turn_end.emit(unit)
+
+func _on_turn_end(_unit: Unit) -> void:
+	selected_hex = null
+
+	var next_unit = TurnManager.get_next()
+	if not next_unit:
+		return
+	TurnManager.next_turn()
+	
+	if next_unit.type == Unit.UNIT_TYPE.PLAYER:
+		_change_state(GameState.PLAYER_SELECT)
+	else:
+		_change_state(GameState.ENEMY_TURN)
+
+func _change_state(new_state: GameState) -> void:
+	var old_state = current_state
+	current_state = new_state
+	print("State changed from ", GameState.keys()[old_state], " to ", GameState.keys()[new_state])
+	
+	match current_state:
+		GameState.PLAYER_SELECT:
+			_handle_player_select()
+
+		GameState.PLAYER_MOVE:
+			_handle_player_movement()
 		
-	game_state = GameState.PLAYERS_IDLE
+		GameState.PLAYER_CAN_ATTACK:
+			_handle_player_can_attack()
+		
+		GameState.PLAYER_ATTACK:
+			_handle_player_attack()
+		
+		GameState.ENEMY_TURN:
+			_handle_enemy_turn()
+		
+		GameState.GAME_OVER:
+			print("Game Over!")
 
-	SignalBus.turn_start.emit(player)
-	SignalBus.player_turn.emit(player, null)
+# Signal handlers for game events
+func _on_selected_hex(hex: Hex) -> void:
+	selected_hex = hex
+	
+	if current_state != GameState.PLAYER_SELECT and current_state != GameState.PLAYER_CAN_ATTACK:
+		return
+		
+	var current_unit = TurnManager.get_current()
+	if not current_unit or current_unit.type != Unit.UNIT_TYPE.PLAYER:
+		return
+	
+	if current_state == GameState.PLAYER_CAN_ATTACK:
+		_change_state(GameState.PLAYER_ATTACK)
+	else:
+		_change_state(GameState.PLAYER_MOVE)
 
-func _play(unit, hex) -> void:
-	if selected_hex == null:
-		print("No hex selected \n")
+# State handlers
+func _handle_player_select() -> void:
+	var current_unit = TurnManager.get_current()
+	if current_unit:
+		current_unit.show_movement_range()
+	
+	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.atk_range)
+
+	if not units_in_range.is_empty():
+		var hexes_can_attack_on = HexGridManager.get_reachable_overlapping_neighbors(current_unit, units_in_range[0])
+		for hex in hexes_can_attack_on:
+			hex.highlight('g')
+		_change_state(GameState.PLAYER_CAN_ATTACK)
+
+func _handle_player_movement() -> void:
+	var current_unit = TurnManager.get_current()
+	if not current_unit or not selected_hex:
+		_change_state(GameState.PLAYER_SELECT)
+		return
+	
+	var target_hex = HexGridManager.find_target_hex(current_unit.current_hex, selected_hex, current_unit)
+	current_unit.clear_highlights()
+	target_hex.highlight('b')
+	UnitManager.move_unit(current_unit, selected_hex)
+
+func _handle_player_can_attack() -> void:
+	var current_unit = TurnManager.get_current()
+	
+	if not current_unit:
+		return
+	
+	if current_unit.type != Unit.UNIT_TYPE.PLAYER:
 		return
 
-	match game_state:
-		GameState.PLAYER_MOVE:
-			UnitManager.move_unit(unit, hex)
-			game_state = GameState.PLAYER_ATTACK
 
-		GameState.PLAYER_ATTACK:
-			var units_in_attack_range = UnitManager.get_units_in_attack_range(unit, unit.atk_range)
-			# if units_in_attack_range.size() == 0:
-			game_state = GameState.ENEMY_MOVE
-
-		GameState.ENEMY_MOVE:
-			UnitManager.move_unit(unit, hex)
-			game_state = GameState.ENEMY_ATTACK
-
-		GameState.ENEMY_ATTACK:
-			var units_in_attack_range = UnitManager.get_units_in_attack_range(unit, unit.atk_range)
-			if units_in_attack_range.size() == 0:
-				print("No units in attack range \n")
-			game_state = GameState.PLAYER_MOVE
-
-# Turn Management
-func _on_player_turn(unit: Player):
-	_play(unit, selected_hex)
-
-func _on_enemy_turn(unit: Enemy):
-	_play(unit, selected_hex)
-
-func _on_turn_start(unit: Unit):
-	if selected_hex != null:
-		unit.clear_highlights()
-		# _play(unit, selected_hex)
-
-func _on_turn_end(unit: Unit):
-	unit.show_movement_range()
-	# _play(unit, selected_hex)
-
-# Triggers the players turn
-func _on_selected_hex(hex: Hex):
-	var unit = TurnManager.get_current()
-	selected_hex = hex
-	if unit.type == Unit.UNIT_TYPE.PLAYER:
-		game_state = GameState.PLAYER_MOVE
-		SignalBus.player_turn.emit(unit)
-		SignalBus.turn_start.emit(unit)
+func _handle_player_attack() -> void:
+	var current_unit = TurnManager.get_current()
 	
+	if not current_unit:
+		return
+	
+	if current_unit.type != Unit.UNIT_TYPE.PLAYER:
+		return
+
+	# var target_hex = HexGridManager.find_target_hex(current_unit.current_hex, selected_hex, current_unit)
+	# current_unit.clear_highlights()
+	# target_hex.highlight('b')
+	UnitManager.move_unit(current_unit, selected_hex)
+	print("Attacking...")
+
+	# _change_state(GameState.PLAYER_SELECT)
+	   
+	# var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.atk_range)
+	# if units_in_range.is_empty():
+	# 	SignalBus.turn_end.emit(current_unit)
+	# 	return
+
+
+func _handle_enemy_turn() -> void:
+	var current_unit = TurnManager.get_current()
+
+	if not current_unit or current_unit.type == Unit.UNIT_TYPE.PLAYER:
+		_change_state(GameState.PLAYER_SELECT)
+		return
+
+	var target_hex = HexGridManager.find_target_hex(current_unit.current_hex, player.current_hex, current_unit)
+
+	# show where its going
+	await get_tree().create_timer(0.2).timeout
+	target_hex.highlight('r')
+	
+	# Simple AI: Move towards player if not in attack range
+	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.atk_range)
+	
+	if not units_in_range.is_empty():
+		# Attack if in range
+		var target = units_in_range[0]
+		target.take_damage(current_unit.attack_power)
+		SignalBus.attack_completed.emit(current_unit)
+	else:
+		# Move towards player
+		UnitManager.move_unit(current_unit, player.current_hex)
