@@ -1,17 +1,17 @@
 extends Node3D
 class_name Unit
 
-enum UNIT_TYPE {PLAYER, GRUNT, ARCHER, BOMBER, WIZARD}
-enum ATK_RANGE_TYPE {MELEE, RANGED_DIAGONAL, RANGED_COLUMN, RANGED_EXPLOSION, RANGED_CROSS, ALL_WITHIN_DISTANCE}
+enum UnitType {PLAYER, GRUNT, ARCHER, BOMBER, WIZARD}
+enum AttackRangeType {MELEE, RANGED_DIAGONAL, RANGED_COLUMN, RANGED_EXPLOSION, RANGED_CROSS, ALL_WITHIN_DISTANCE}
 
-var type: UNIT_TYPE = UNIT_TYPE.PLAYER
-var atk_range_type: ATK_RANGE_TYPE = ATK_RANGE_TYPE.MELEE
-var in_atk_range: bool = false
-var current_hex: Hex = null
+var type: UnitType = UnitType.PLAYER
+var attack_range_type = AttackRangeType.MELEE
+var attack_range: int = 1
+var attack_power: int = 1
 var max_health: int = 3
 var move_range: int = 1
-var atk_range: int = 1
 var current_health: int = max_health
+var current_hex: Hex = null
 
 func _ready() -> void:
 	current_health = max_health

@@ -7,10 +7,11 @@ func _ready() -> void:
 	super()
 	
 	name = 'Enemy'
-	type = UNIT_TYPE.GRUNT
+	type = UnitType.GRUNT
+	attack_range_type = AttackRangeType.MELEE
 	max_health = 1
 	move_range = 1
-	atk_range = 1
+	attack_range = 1
 	current_health = 1
 	
 # Call this when a unit is selected

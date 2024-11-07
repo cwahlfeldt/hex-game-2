@@ -16,6 +16,7 @@ var attack_hexes: Array[Hex] = []
 var unit_manager: UnitManager
 var current_state: GameState = GameState.SETUP
 var player: Player = null
+var enemies_in_range_of_player: Array[Unit] = []
 
 enum GameState {
 	# Game states
@@ -75,6 +76,7 @@ func _spawn_initial_units() -> void:
 		UnitManager.spawn_enemy(random_hex)
 
 func _connect_signals() -> void:
+	SignalBus.unit_attack.connect(_on_unit_attack)
 	SignalBus.start_game.connect(_on_game_start)
 	SignalBus.unit_moved.connect(_on_unit_moved)
 	SignalBus.turn_end.connect(_on_turn_end)
@@ -88,8 +90,14 @@ func _on_unit_moved(unit: Unit) -> void:
 	# Check if unit can attack after moving
 	unit.current_hex.unhighlight()
 
-	if current_state != GameState.PLAYER_ATTACK:
+	print(enemies_in_range_of_player)
+
+	if current_state == GameState.PLAYER_ATTACK:
+		if not enemies_in_range_of_player.is_empty():
+			SignalBus.unit_attack.emit(unit, enemies_in_range_of_player[0])
+	else:
 		SignalBus.turn_end.emit(unit)
+			
 
 func _on_attack_completed(unit: Unit) -> void:
 	SignalBus.turn_end.emit(unit)
@@ -102,7 +110,7 @@ func _on_turn_end(_unit: Unit) -> void:
 		return
 	TurnManager.next_turn()
 	
-	if next_unit.type == Unit.UNIT_TYPE.PLAYER:
+	if next_unit.type == Unit.UnitType.PLAYER:
 		_change_state(GameState.PLAYER_SELECT)
 	else:
 		_change_state(GameState.ENEMY_TURN)
@@ -139,7 +147,7 @@ func _on_selected_hex(hex: Hex) -> void:
 		return
 		
 	var current_unit = TurnManager.get_current()
-	if not current_unit or current_unit.type != Unit.UNIT_TYPE.PLAYER:
+	if not current_unit or current_unit.type != Unit.UnitType.PLAYER:
 		return
 	
 	if current_state == GameState.PLAYER_CAN_ATTACK:
@@ -153,7 +161,8 @@ func _handle_player_select() -> void:
 	if current_unit:
 		current_unit.show_movement_range()
 	
-	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.atk_range)
+	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.attack_range)
+	enemies_in_range_of_player.append(units_in_range)
 
 	if not units_in_range.is_empty():
 		var hexes_can_attack_on = HexGridManager.get_reachable_overlapping_neighbors(current_unit, units_in_range[0])
@@ -178,8 +187,11 @@ func _handle_player_can_attack() -> void:
 	if not current_unit:
 		return
 	
-	if current_unit.type != Unit.UNIT_TYPE.PLAYER:
+	if current_unit.type != Unit.UnitType.PLAYER:
 		return
+
+	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.attack_range)
+	enemies_in_range_of_player = units_in_range
 
 
 func _handle_player_attack() -> void:
@@ -188,27 +200,15 @@ func _handle_player_attack() -> void:
 	if not current_unit:
 		return
 	
-	if current_unit.type != Unit.UNIT_TYPE.PLAYER:
+	if current_unit.type != Unit.UnitType.PLAYER:
 		return
 
-	# var target_hex = HexGridManager.find_target_hex(current_unit.current_hex, selected_hex, current_unit)
-	# current_unit.clear_highlights()
-	# target_hex.highlight('b')
 	UnitManager.move_unit(current_unit, selected_hex)
-	print("Attacking...")
-
-	# _change_state(GameState.PLAYER_SELECT)
-	   
-	# var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.atk_range)
-	# if units_in_range.is_empty():
-	# 	SignalBus.turn_end.emit(current_unit)
-	# 	return
-
 
 func _handle_enemy_turn() -> void:
 	var current_unit = TurnManager.get_current()
 
-	if not current_unit or current_unit.type == Unit.UNIT_TYPE.PLAYER:
+	if not current_unit or current_unit.type == Unit.UnitType.PLAYER:
 		_change_state(GameState.PLAYER_SELECT)
 		return
 
@@ -219,13 +219,23 @@ func _handle_enemy_turn() -> void:
 	target_hex.highlight('r')
 	
 	# Simple AI: Move towards player if not in attack range
-	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.atk_range)
+	var units_in_range = UnitManager.get_units_in_attack_range(current_unit, current_unit.attack_range)
 	
 	if not units_in_range.is_empty():
 		# Attack if in range
 		var target = units_in_range[0]
-		target.take_damage(current_unit.attack_power)
-		SignalBus.attack_completed.emit(current_unit)
+		print("Attacking ", target)
+		SignalBus.unit_attack.emit(current_unit, target)
 	else:
 		# Move towards player
 		UnitManager.move_unit(current_unit, player.current_hex)
+
+func _on_unit_attack(attacker: Unit, target: Unit) -> void:
+	print("Attacked ", target)
+	target.take_damage(attacker.attack_power)
+
+	if target.current_health <= 0:
+		UnitManager.remove_unit(target)
+	
+	SignalBus.turn_end.emit(attacker)
+	print(target, " ", target.current_health)

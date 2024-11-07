@@ -6,9 +6,9 @@ var _highlighted_hexes: Array[Hex] = []
 func _ready() -> void:
 	super()
 	name = "Player"
-	type = UNIT_TYPE.PLAYER
-	atk_range_type = ATK_RANGE_TYPE.MELEE
-	atk_range = 1
+	type = UnitType.PLAYER
+	attack_range_type = AttackRangeType.MELEE
+	attack_range = 1
 	move_range = 1
 
 # Call this when a unit is selected

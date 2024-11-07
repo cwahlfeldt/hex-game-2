@@ -45,6 +45,10 @@ func _unregister_unit(unit: Unit) -> void:
 			_hex_units.erase(current_hex)
 		_unit_positions.erase(unit)
 		SignalBus.unit_unregistered.emit(unit)
+	
+func remove_unit(unit: Unit) -> void:
+	_unregister_unit(unit)
+	unit.queue_free()
 
 func move_unit(unit: Unit, to_hex: Hex) -> void:
 	var from_hex = unit.current_hex
