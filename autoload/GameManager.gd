@@ -68,10 +68,10 @@ func _spawn_initial_units() -> void:
 
 func _connect_signals() -> void:
 	SignalBus.start_game.connect(_on_game_start)
-	# SignalBus.player_turn.connect(_on_player_turn)
-	# SignalBus.enemy_turn.connect(_on_enemy_turn)
-	# SignalBus.player_turn_end.connect(_on_player_turn)
-	# SignalBus.enemy_turn_end.connect(_on_enemy_turn)
+	SignalBus.player_turn.connect(_on_player_turn)
+	SignalBus.enemy_turn.connect(_on_enemy_turn)
+	SignalBus.player_turn_end.connect(_on_player_turn)
+	SignalBus.enemy_turn_end.connect(_on_enemy_turn)
 	# SignalBus.all_turns_end.connect(_on_all_turns_end)
 	SignalBus.turn_start.connect(_on_turn_start)
 	SignalBus.turn_end.connect(_on_turn_end)
@@ -113,20 +113,20 @@ func _play(unit, hex) -> void:
 			game_state = GameState.PLAYER_MOVE
 
 # Turn Management
-# func _on_player_turn(unit: Player):
-# 	_play(unit, selected_hex)
+func _on_player_turn(unit: Player):
+	_play(unit, selected_hex)
 
-# func _on_enemy_turn(unit: Enemy):
-# 	_play(unit, selected_hex)
+func _on_enemy_turn(unit: Enemy):
+	_play(unit, selected_hex)
 
 func _on_turn_start(unit: Unit):
 	if selected_hex != null:
 		unit.clear_highlights()
-		_play(unit, selected_hex)
+		# _play(unit, selected_hex)
 
 func _on_turn_end(unit: Unit):
 	unit.show_movement_range()
-	_play(unit, selected_hex)
+	# _play(unit, selected_hex)
 
 # Triggers the players turn
 func _on_selected_hex(hex: Hex):
